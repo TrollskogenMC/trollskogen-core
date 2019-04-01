@@ -110,13 +110,13 @@ public final class Main extends JavaPlugin {
       .withHandler(new CommandAnnouncementInterval(this))
       .setNumberOfArguments(0)
       .setHelpText("/announcement interval")
-      .requiresPermission("announcement.interval");
+      .requiresPermission("ts.announcement.interval");
 
     carbon
       .addCommand("announcement", "interval", "set")
       .withHandler(new CommandAnnouncementIntervalSet(this))
       .setHelpText("/announcement interval set <seconds>")
-      .requiresPermission("announcement.interval.set")
+      .requiresPermission("ts.announcement.interval.set")
       .setNumberOfArguments(1)
       .validateArgument(0, new NumberInRangeValidator(this, 1, Integer.MAX_VALUE));
 

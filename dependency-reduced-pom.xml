@@ -32,6 +32,12 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>se.hornta.carbon</pattern>
+                  <shadedPattern>com.github.hornta.trollskogen.shaded</shadedPattern>
+                </relocation>
+              </relocations>
               <minimizeJar>true</minimizeJar>
             </configuration>
           </execution>
