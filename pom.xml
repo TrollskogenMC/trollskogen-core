@@ -64,12 +64,14 @@
                             <version>1.0-SNAPSHOT</version>
                             <type>jar</type>
                             <overWrite>yes</overWrite>
-                            <outputDirectory>C:\Users\anthon\Desktop\dev-spigot-server\plugins</outputDirectory>
+                            <outputDirectory>${project.basedir}/server/plugins</outputDirectory>
+                            <destFileName>${project.artifactId}.jar</destFileName>
                         </artifactItem>
                     </artifactItems>
                     <outputDirectory>${project.build.directory}/wars</outputDirectory>
-                    <overWriteReleases>false</overWriteReleases>
                     <overWriteSnapshots>true</overWriteSnapshots>
+                    <overWriteReleases>true</overWriteReleases>
+                    <overWriteIfNewer>true</overWriteIfNewer>
                 </configuration>
             </plugin>
         </plugins>
@@ -90,6 +92,10 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>mvn-repo</id>
+            <url>https://raw.githubusercontent.com/hornta/artifacts/master</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -98,6 +104,12 @@
             <artifactId>spigot-api</artifactId>
             <version>1.13.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>se.hornta</groupId>
+            <artifactId>carbon</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

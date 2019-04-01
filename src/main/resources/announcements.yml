@@ -1,0 +1,4 @@
+announcements:
+interval: 3600
+lastExecuted:
+isEnabled: true
