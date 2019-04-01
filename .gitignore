@@ -1,3 +1,4 @@
+target
 server/world_renamed
 server/world_renamed_nether
 server/world_renamed_the_end
@@ -12,7 +13,6 @@ server/server.properties
 server/spigot-1.13.2.jar
 .idea
 TrollskogenPlugin.iml
-target
 release.properties
 .vscode
 .classpath
