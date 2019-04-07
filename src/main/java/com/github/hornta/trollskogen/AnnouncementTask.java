@@ -1,5 +1,6 @@
 package com.github.hornta.trollskogen;
 
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -23,6 +24,6 @@ public class AnnouncementTask extends BukkitRunnable {
       return;
     }
 
-    plugin.getServer().broadcastMessage(announcement.getMessage());
+    plugin.getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', announcement.getMessage()));
   }
 }

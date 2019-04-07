@@ -9,21 +9,26 @@ import se.hornta.carbon.MessageManager;
 import java.util.List;
 
 public final class Main extends JavaPlugin {
-  private Carbon carbon;
-  private MessageManager messageManager ;
-  private TrollskogenConfig trollskogenConfig;
   private Announcements announcements;
+  private MessageManager messageManager;
+  private Carbon carbon;
+  private TrollskogenConfig trollskogenConfig;
+  private PlayerManager playerManager;
+  private ParticleManager particleManager;
 
   @Override
   public void onEnable() {
-    getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
-    getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-
     announcements = new Announcements(this);
     messageManager = new MessageManager(this);
     carbon = new Carbon(messageManager);
     carbon.setNoPermissionMessage(messageManager.getMessage("no_permission"));
     trollskogenConfig = new TrollskogenConfig(this);
+    playerManager = new PlayerManager(this);
+    particleManager = new ParticleManager(this);
+
+    getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
+    getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+    getServer().getPluginManager().registerEvents(particleManager, this);
 
     AnnouncementExistValidator announcementExistsValidator = new AnnouncementExistValidator(this);
     AnnouncementCompleter announcementCompleter = new AnnouncementCompleter(this);
@@ -125,6 +130,26 @@ public final class Main extends JavaPlugin {
       .withHandler(new CommandHelp(this))
       .setNumberOfArguments(0)
       .requiresPermission("ts.help");
+
+    carbon
+      .addCommand("effect", "use")
+      .withHandler(new CommandEffectUse(this))
+      .setHelpText("/effect use <effect>")
+      .requiresPermission("ts.effect.use")
+      .setNumberOfArguments(1)
+      .validateArgument(0, new EffectValidator(this))
+      .setTabComplete(0, new EffectCompleter(this))
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("effect", "reset")
+      .withHandler(new CommandEffectReset(this))
+      .setHelpText("/effect reset")
+      .requiresPermission("ts.effect.reset")
+      .setNumberOfArguments(0)
+      .preventConsoleCommandSender();
+
+    playerManager.init();
   }
 
   @Override
@@ -150,6 +175,14 @@ public final class Main extends JavaPlugin {
 
   public TrollskogenConfig getTrollskogenConfig() {
     return trollskogenConfig;
+  }
+
+  public PlayerManager getPlayerManager() {
+    return playerManager;
+  }
+
+  public ParticleManager getParticleManager() {
+    return particleManager;
   }
 
   @Override
