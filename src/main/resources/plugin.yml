@@ -7,3 +7,6 @@ commands:
   hat:
   announcement:
   effect:
+  ban:
+  unban:
+  banlist:

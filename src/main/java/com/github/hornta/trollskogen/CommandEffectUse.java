@@ -14,10 +14,13 @@ public class CommandEffectUse implements ICommandHandler {
 
   @Override
   public void handle(CommandSender commandSender, String[] args) {
-    Player player = (Player)commandSender;
     ParticleEffect particleEffect = ParticleEffect.getParticleEffect(args[0]);
-    main.getParticleManager().useParticle(player, particleEffect);
-    main.getMessageManager().setValue("effect_id", WordUtils.capitalizeFully(particleEffect.name(), new char[] { '_' }));
-    main.getMessageManager().sendMessage(commandSender, "effect_set");
+    User user = main.getUser(commandSender);
+    if(user.setSelectedEffect(particleEffect)) {
+      main.getMessageManager().setValue("effect_id", WordUtils.capitalizeFully(particleEffect.name(), new char[]{'_'}));
+      main.getMessageManager().sendMessage(commandSender, "effect_set");
+    } else {
+      main.getMessageManager().sendMessage(commandSender, "effect_set_in_use");
+    }
   }
 }

@@ -15,6 +15,7 @@ public class CommandReload implements ICommandHandler {
   public void handle(CommandSender commandSender, String[] strings) {
     main.getMessageManager().getConfig().reloadConfig();
     main.getAnnouncements().reload();
+    main.getUserManager().load();
     main.getMessageManager().sendMessage(commandSender, "config-reloaded-success");
   }
 }

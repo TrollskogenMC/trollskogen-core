@@ -2,6 +2,7 @@ package com.github.hornta.trollskogen;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import se.hornta.carbon.Carbon;
 import se.hornta.carbon.MessageManager;
@@ -13,7 +14,7 @@ public final class Main extends JavaPlugin {
   private MessageManager messageManager;
   private Carbon carbon;
   private TrollskogenConfig trollskogenConfig;
-  private PlayerManager playerManager;
+  private UserManager userManager;
   private ParticleManager particleManager;
 
   @Override
@@ -23,7 +24,7 @@ public final class Main extends JavaPlugin {
     carbon = new Carbon(messageManager);
     carbon.setNoPermissionMessage(messageManager.getMessage("no_permission"));
     trollskogenConfig = new TrollskogenConfig(this);
-    playerManager = new PlayerManager(this);
+    userManager = new UserManager(this);
     particleManager = new ParticleManager(this);
 
     getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
@@ -149,12 +150,39 @@ public final class Main extends JavaPlugin {
       .setNumberOfArguments(0)
       .preventConsoleCommandSender();
 
-    playerManager.init();
+    carbon
+      .addCommand("ban")
+      .withHandler(new CommandBan(this))
+      .setHelpText(new String[] {
+        "/ban <player> <reason>",
+        "/ban <player> <time> <reason>"
+      })
+      .requiresPermission("ts.ban")
+      .setMinNumberOfArguments(2)
+      .validateArgument(0, new PlayerExistValidator(this))
+      .setTabComplete(0, new PlayerCompleter(this));
+
+    carbon
+      .addCommand("unban")
+      .withHandler(new CommandUnban(this))
+      .setHelpText("/unban <player>")
+      .requiresPermission("ts.unban")
+      .setNumberOfArguments(1)
+      .validateArgument(0, new PlayerExistValidator(this))
+      .setTabComplete(0, new PlayerCompleter(this, p -> p.isBanned()));
+
+    carbon
+      .addCommand("banlist")
+      .withHandler(new CommandBanList(this))
+      .setHelpText("/banlist")
+      .requiresPermission("ts.banlist")
+      .setNumberOfArguments(0);
   }
 
   @Override
   public void onDisable() {
     announcements.save();
+    userManager.shutdown();
   }
 
   public int scheduleSyncDelayedTask(final Runnable run) {
@@ -177,12 +205,27 @@ public final class Main extends JavaPlugin {
     return trollskogenConfig;
   }
 
-  public PlayerManager getPlayerManager() {
-    return playerManager;
+  public UserManager getUserManager() {
+    return userManager;
   }
 
   public ParticleManager getParticleManager() {
     return particleManager;
+  }
+
+  public User getUser(String name) {
+    return userManager.getUser(name);
+  }
+
+  public User getUser(Player player) {
+    return userManager.getUser(player.getUniqueId());
+  }
+
+  public User getUser(CommandSender commandSender) {
+    if(commandSender instanceof Player) {
+      return userManager.getUser(((Player) commandSender).getUniqueId());
+    }
+    return null;
   }
 
   @Override

@@ -13,11 +13,11 @@ public class CommandEffectReset implements ICommandHandler {
 
   @Override
   public void handle(CommandSender commandSender, String[] args) {
-    ParticleEffect particleEffect = main.getParticleManager().reset((Player)commandSender);
-    if(particleEffect == null) {
-      main.getMessageManager().sendMessage(commandSender, "effect_reset_fail");
-    } else {
+    User user = main.getUser(commandSender);
+    if(user.setSelectedEffect(null)) {
       main.getMessageManager().sendMessage(commandSender, "effect_reset");
+    } else {
+      main.getMessageManager().sendMessage(commandSender, "effect_reset_fail");
     }
   }
 }

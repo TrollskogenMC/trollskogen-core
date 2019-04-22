@@ -24,11 +24,6 @@ class ParticleManager implements Listener {
     return playerParticles.get(player);
   }
 
-  @EventHandler
-  void onPlayerDisconnect(PlayerQuitEvent event) {
-    reset(event.getPlayer());
-  }
-
   void useParticle(Player player, ParticleEffect particleEffect) {
     playerParticles.put(player, particleEffect);
     EffectTask task = new EffectTask(this, player, particleEffect);

@@ -11,11 +11,8 @@ public class PlayerExistValidator extends ArgumentValidator {
 
   @Override
   public boolean test(String arg) {
-    return main
-      .getServer()
-      .getOnlinePlayers()
-      .stream()
-      .anyMatch(p -> p.getName().equals(arg));
+    return main.getUserManager().getUsers().values().stream()
+      .anyMatch(p -> p.getLastSeenAs().equals(arg));
   }
 
   @Override

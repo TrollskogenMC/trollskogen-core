@@ -2,7 +2,9 @@ package com.github.hornta.trollskogen;
 
 import org.bukkit.Location;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public enum ParticleEffect {
   WATER_SPLASH("R", false, 5),
@@ -65,6 +67,14 @@ public enum ParticleEffect {
 
   public static final int MAX_RANGE = 128;
 
+  private static Map<String, ParticleEffect> BY_LABEL = new HashMap<>();
+
+  static {
+    for (ParticleEffect e: values()) {
+      BY_LABEL.put(e.name(), e);
+    }
+  }
+
   ParticleEffect(String name, boolean isVolatile) {
     this.name = name;
     this.isVolatile = isVolatile;
@@ -94,10 +104,14 @@ public enum ParticleEffect {
   }
 
   public static ParticleEffect getParticleEffect(String name) {
-    try {
-      return ParticleEffect.valueOf(name.toUpperCase(Locale.ENGLISH));
-    } catch (IllegalArgumentException e) {
+    if(name == null) {
       return null;
     }
+
+    if(!ParticleEffect.BY_LABEL.containsKey(name)) {
+      return null;
+    }
+
+    return ParticleEffect.BY_LABEL.get(name.toUpperCase(Locale.ENGLISH));
   }
 }

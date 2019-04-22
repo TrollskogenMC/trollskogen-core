@@ -11,18 +11,32 @@ announcement_set: "§eSatt `<announcement_id>` med meddelandet `<announcement_me
 announcement_deleted: "§eMeddelande `<announcement_id>` har raderats!"
 announcement_list: "§eMeddelanden: §f<announcements>"
 help_title: "§e§m----§e[ Trollskogen Hjälp §e]§m-----"
-interval: "§e<interval> <second>s intervall mellan meddelanden!"
-interval_set_success: "§eNytt intervall satt till <interval> <second>!"
-validate_number_range: "§cNummer måste vara mellan <min> till <max>!"
+interval: "§e<interval> <second>s intervall mellan meddelanden."
+interval_set_success: "§eNytt intervall satt till <interval> <second>."
+validate_number_range: "§cNummer måste vara mellan <min> till <max>."
 announcement: |
   §eIntervall: §f<interval> <second>
   §eAktiverad: §f<isEnabled>
   §eMeddelanden: §f<announcements>
-enabled: "§eMeddelanden har aktiverats!"
-disabled: "§eMeddelanden har inaktiverats!"
+enabled: "§eMeddelanden har aktiverats."
+disabled: "§eMeddelanden har inaktiverats."
 second: "sekund"
 seconds: "sekunder"
-effect_not_found: "§cDet finns ingen effekt med id `<effect_id>`!"
-effect_reset: "§eDu tog bort din effekt!"
-effect_set: "§eDu använder nu effekten `<effect_id>`!"
-effect_reset_fail: "§cDu har ingen pågående effekt!"
+effect_not_found: "§cDet finns ingen effekt med id `<effect_id>`."
+effect_reset: "§eDu tog bort din effekt."
+effect_reset_fail: "§cDu har ingen pågående effekt."
+effect_set: "§eDu använder nu effekten `<effect_id>`."
+effect_set_in_use: "§cDu använder redan den här effekten."
+player_ban_temporary: "§b<player> har blivit temporärt bannlyst i <time_left> till följd av: <reason>"
+player_ban_permanent: "§b<player> har blivit permanent bannlyst till följd av: <reason>"
+kickban_permanent: |
+  Du har blivit permanent bannlyst
+  Anledning: <reason>
+kickban_temporary: |
+  Du har blivit temporärt bannlyst.
+  Anledning: <reason>
+  Tid kvar: <time_left>
+err_ban_no_reason: "§eDu måste specificera en anledning till bannen."
+player_unban: "§b<player> har fått sin bannlysning upphävd."
+unban_not_banned: "§e<player> är inte bannlyst."
+ban_list_player: "§b<player> §f| §b<time_left> §f| §b<reason>"
