@@ -22,10 +22,16 @@ public class CommandBanList extends BaseCommand implements ICommandHandler {
       .filter(User::isBanned)
       .sorted(Comparator.comparing(User::getLastSeenAs))
       .map((User u) -> {
+        String messageType;
+        if(u.getBanExpiration() == null) {
+          messageType = "ban_list_player_permanent";
+        } else {
+          messageType = "ban_list_player_temporary";
+          main.getMessageManager().setValue("time_left", DateUtils.formatDateDiff(u.getBanExpiration()));
+        }
         main.getMessageManager().setValue("player", u.getLastSeenAs());
-        main.getMessageManager().setValue("time_left", DateUtils.formatDateDiff(u.getBanExpiration()));
         main.getMessageManager().setValue("reason", u.getBanReason());
-        return main.getMessageManager().getMessage("ban_list_player");
+        return main.getMessageManager().getMessage(messageType);
       })
       .collect(Collectors.joining( "," )));
   }

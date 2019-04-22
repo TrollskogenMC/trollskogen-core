@@ -39,4 +39,5 @@ kickban_temporary: |
 err_ban_no_reason: "§eDu måste specificera en anledning till bannen."
 player_unban: "§b<player> har fått sin bannlysning upphävd."
 unban_not_banned: "§e<player> är inte bannlyst."
-ban_list_player: "§b<player> §f| §b<time_left> §f| §b<reason>"
+ban_list_player_temporary: "§b<player> §f| §b<time_left> §f| §b<reason>"
+ban_list_player_permanent: "§b<player> §f| §b<reason>"
