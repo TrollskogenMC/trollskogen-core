@@ -1,7 +1,7 @@
 target
-server/world_renamed
-server/world_renamed_nether
-server/world_renamed_the_end
+server/trollskogen
+server/trollskogen_nether
+server/trollskogen_the_end
 server/banned-ips.json
 server/banned-players.json
 server/logs

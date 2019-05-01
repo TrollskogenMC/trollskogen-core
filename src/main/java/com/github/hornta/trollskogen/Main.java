@@ -1,13 +1,17 @@
 package com.github.hornta.trollskogen;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import se.hornta.carbon.Carbon;
+import se.hornta.carbon.DefaultArgument;
 import se.hornta.carbon.MessageManager;
 
-import java.util.List;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public final class Main extends JavaPlugin {
   private Announcements announcements;
@@ -16,6 +20,8 @@ public final class Main extends JavaPlugin {
   private TrollskogenConfig trollskogenConfig;
   private UserManager userManager;
   private ParticleManager particleManager;
+
+  private boolean isMaintenance = false;
 
   @Override
   public void onEnable() {
@@ -28,7 +34,7 @@ public final class Main extends JavaPlugin {
     particleManager = new ParticleManager(this);
 
     getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
-    getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+    getServer().getPluginManager().registerEvents(userManager, this);
     getServer().getPluginManager().registerEvents(particleManager, this);
 
     AnnouncementExistValidator announcementExistsValidator = new AnnouncementExistValidator(this);
@@ -150,6 +156,8 @@ public final class Main extends JavaPlugin {
       .setNumberOfArguments(0)
       .preventConsoleCommandSender();
 
+    PlayerExistValidator playerExistValidator = new PlayerExistValidator(this);
+    PlayerCompleter playerCompleter = new PlayerCompleter(this);
     carbon
       .addCommand("ban")
       .withHandler(new CommandBan(this))
@@ -159,8 +167,8 @@ public final class Main extends JavaPlugin {
       })
       .requiresPermission("ts.ban")
       .setMinNumberOfArguments(2)
-      .validateArgument(0, new PlayerExistValidator(this))
-      .setTabComplete(0, new PlayerCompleter(this));
+      .validateArgument(0, playerExistValidator)
+      .setTabComplete(0, playerCompleter);
 
     carbon
       .addCommand("unban")
@@ -168,14 +176,72 @@ public final class Main extends JavaPlugin {
       .setHelpText("/unban <player>")
       .requiresPermission("ts.unban")
       .setNumberOfArguments(1)
-      .validateArgument(0, new PlayerExistValidator(this))
-      .setTabComplete(0, new PlayerCompleter(this, p -> p.isBanned()));
+      .validateArgument(0, playerExistValidator)
+      .setTabComplete(0, playerCompleter, playerCompleter::getBanned);
 
     carbon
       .addCommand("banlist")
       .withHandler(new CommandBanList(this))
       .setHelpText("/banlist")
       .requiresPermission("ts.banlist")
+      .setNumberOfArguments(0);
+
+    HomeCompleter homeCompleter = new HomeCompleter(this);
+    HomeExistValidator homeExistValidator = new HomeExistValidator(this);
+
+    carbon
+      .addCommand("home")
+      .withHandler(new CommandHome(this))
+      .setHelpText("/home <home>")
+      .requiresPermission("ts.home")
+      .setNumberOfArguments(1)
+      .withDefaultArgument(new DefaultArgument((CommandSender sender) -> getUser(sender).getFirstHomeName()))
+      .setTabComplete(0, homeCompleter)
+      .validateArgument(0, homeExistValidator)
+      .preventConsoleCommandSender();
+
+    RegexValidator setHomeNameValidator = new RegexValidator(this, Pattern.compile("[a-z0-9_]+", Pattern.CASE_INSENSITIVE), "sethome_bad_chars");
+    carbon
+      .addCommand("sethome")
+      .withHandler(new CommandSetHome(this))
+      .setHelpText("/sethome <home>")
+      .requiresPermission("ts.sethome")
+      .setNumberOfArguments(1)
+      .withDefaultArgument(new DefaultArgument(Home.DEFAULT_HOME_NAME))
+      .setTabComplete(0, homeCompleter)
+      .validateArgument(0, setHomeNameValidator)
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("delhome")
+      .withHandler(new CommandDelHome(this))
+      .setHelpText("/delhome <home>")
+      .requiresPermission("ts.delhome")
+      .setNumberOfArguments(1)
+      .setTabComplete(0, homeCompleter)
+      .validateArgument(0, homeExistValidator)
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("homes")
+      .withHandler(new CommandHomes(this))
+      .setHelpText("/homes")
+      .requiresPermission("ts.homes")
+      .setNumberOfArguments(0)
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("maintenance")
+      .withHandler(new CommandMaintenance(this))
+      .setHelpText("/maintenance")
+      .requiresPermission("ts.maintenance")
+      .setNumberOfArguments(0);
+
+    carbon
+      .addCommand("migrateessentials")
+      .withHandler(new CommandMigrateEssentials(this))
+      .setHelpText("/migrateessentials")
+      .requiresPermission("ts.migrateessentials")
       .setNumberOfArguments(0);
   }
 
@@ -240,5 +306,22 @@ public final class Main extends JavaPlugin {
 
   public String getSeconds(int amount) {
     return messageManager.getMessage(amount > 1 ? "seconds" : "second");
+  }
+
+  public boolean isMaintenance() {
+    return isMaintenance;
+  }
+
+  public void toggleMaintenance() {
+    isMaintenance = !isMaintenance;
+  }
+
+  public boolean isAllowedMaintenance(Player player) {
+    for(String playerName : getTrollskogenConfig().getAllowedMaintenance()) {
+      if(player.getName().equalsIgnoreCase(playerName)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

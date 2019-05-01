@@ -10,3 +10,10 @@ commands:
   ban:
   unban:
   banlist:
+  home:
+  sethome:
+  delhome:
+  homes:
+  maintenance:
+  migrateessentials:
+  phome:

@@ -1,43 +1,89 @@
 package com.github.hornta.trollskogen;
 
+import com.github.hornta.trollskogen.events.BanUserEvent;
+import com.github.hornta.trollskogen.events.NewUserEvent;
+import com.github.hornta.trollskogen.events.ReadUsersEvent;
+import com.github.hornta.trollskogen.events.UnbanUserEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import se.hornta.carbon.BaseTabCompleter;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
 
-public class PlayerCompleter extends BaseTabCompleter<User> {
+public class PlayerCompleter extends BaseTabCompleter<String> implements Listener {
   private Main main;
-  private Predicate<User> filter;
+  private boolean filterBanned;
 
-  public PlayerCompleter(Main main) {
+  // keep track of which users has already been processed
+  private Set<User> parsedUsers = new HashSet<>();
+
+  private PrefixMatcher allUsernames = new PrefixMatcher();
+  private PrefixMatcher bannedUsernames = new PrefixMatcher();
+
+  PlayerCompleter(Main main) {
     this.main = main;
+    listen();
   }
 
-  public PlayerCompleter(Main main, Predicate<User> filter) {
+  PlayerCompleter(Main main, boolean filterBanned) {
     this.main = main;
-    this.filter = filter;
+    this.filterBanned = filterBanned;
+    listen();
   }
 
-  @Override
-  public List<User> getItems(String argument) {
-    Stream<User> userStream = main.getUserManager()
-      .getUsers()
-      .values()
-      .stream()
-      .filter(user -> user.getPlayer().getName().toLowerCase(Locale.ENGLISH).startsWith(argument.toLowerCase(Locale.ENGLISH)));
+  private void listen() {
+    Bukkit.getServer().getPluginManager().registerEvents(this, main);
+  }
 
-    if(filter != null) {
-      userStream = userStream.filter(filter);
+  @EventHandler
+  private void onReadUsers(ReadUsersEvent event) {
+    for(User user : main.getUserManager().getUsers().values()) {
+      parseUser(user);
+    }
+  }
+
+  @EventHandler
+  private void onNewUser(NewUserEvent event) {
+    parseUser(event.getUser());
+  }
+
+  @EventHandler
+  private void onBanUser(BanUserEvent event) {
+    bannedUsernames.insert(event.getUser().getLastSeenAs());
+  }
+
+  @EventHandler
+  private void onUnbanUser(UnbanUserEvent event) {
+    bannedUsernames.delete(event.getUser().getLastSeenAs());
+  }
+
+  private void parseUser(User user) {
+    if(parsedUsers.contains(user)) {
+      return;
     }
 
-    return userStream.collect(Collectors.toList());
+    allUsernames.insert(user.getLastSeenAs());
+
+    if(user.isBanned()) {
+      bannedUsernames.insert(user.getLastSeenAs());
+    }
+
+    parsedUsers.add(user);
   }
 
   @Override
-  public List<String> toSuggestions(List<User> items) {
-    return items.stream().map(user -> user.getPlayer().getName()).collect(Collectors.toList());
+  public List<String> getItems(CommandSender sender, String argument) {
+    return allUsernames.find(argument);
+  }
+
+  public List<String> getBanned(CommandSender sender, String argument) {
+    return bannedUsernames.find(argument);
+  }
+
+  @Override
+  public List<String> toSuggestions(CommandSender sender, List<String> items) {
+    return items;
   }
 }

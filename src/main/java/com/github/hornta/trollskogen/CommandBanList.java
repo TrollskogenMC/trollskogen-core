@@ -33,6 +33,6 @@ public class CommandBanList extends BaseCommand implements ICommandHandler {
         main.getMessageManager().setValue("reason", u.getBanReason());
         return main.getMessageManager().getMessage(messageType);
       })
-      .collect(Collectors.joining( "," )));
+      .collect(Collectors.joining( "\n" )));
   }
 }

@@ -1,6 +1,7 @@
 package com.github.hornta.trollskogen;
 
 import org.apache.commons.lang.WordUtils;
+import org.bukkit.command.CommandSender;
 import se.hornta.carbon.BaseTabCompleter;
 
 import java.util.List;
@@ -21,14 +22,14 @@ public class EffectCompleter extends BaseTabCompleter<String> {
   }
 
   @Override
-  public List<String> getItems(String argument) {
+  public List<String> getItems(CommandSender sender, String argument) {
     return items.stream()
       .filter(id -> id.toLowerCase(Locale.ENGLISH).startsWith(argument.toLowerCase(Locale.ENGLISH)))
       .collect(Collectors.toList());
   }
 
   @Override
-  public List<String> toSuggestions(List<String> items) {
+  public List<String> toSuggestions(CommandSender sender, List<String> items) {
     return items;
   }
 }

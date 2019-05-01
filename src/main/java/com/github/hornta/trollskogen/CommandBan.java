@@ -1,12 +1,10 @@
 package com.github.hornta.trollskogen;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import se.hornta.carbon.ICommandHandler;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.logging.Level;
 
@@ -27,8 +25,14 @@ public class CommandBan extends BaseCommand implements ICommandHandler {
       return;
     }
 
-    User target = main.getUser(args[0]);
     LocalDateTime timestamp = DateUtils.parseDateDiff(time, true);
+    User target = main.getUser(args[0]);
+
+    if(timestamp == null && !commandSender.hasPermission("ts.permban")) {
+      main.getMessageManager().sendMessage(commandSender, "no_permission_permban");
+      return;
+    }
+
     target.ban(reason, timestamp);
     if(target.getPlayer() instanceof Player) {
       ((Player) target.getPlayer()).kickPlayer(target.getBanMessage());

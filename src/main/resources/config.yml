@@ -1,0 +1,7 @@
+discord_verified_num_homes: 1
+home_perms:
+  default: 1
+  vip: 3
+maintenance:
+  - horntaf
+  - philip2096

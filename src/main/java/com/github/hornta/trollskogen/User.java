@@ -1,16 +1,17 @@
 package com.github.hornta.trollskogen;
 
+import com.github.hornta.trollskogen.events.BanUserEvent;
+import com.github.hornta.trollskogen.events.UnbanUserEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.logging.Level;
 
 public class User {
   private Main main;
@@ -21,6 +22,7 @@ public class User {
   private boolean isBanned;
   private LocalDateTime banExpiration;
   private String banReason;
+  private List<Home> homes = Collections.emptyList();
 
   User(Main main, UUID uuid) {
     this.main = main;
@@ -49,6 +51,29 @@ public class User {
     }
 
     player = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
+
+    ConfigurationSection homesSection = config.getConfigurationSection("homes");
+    if(homesSection != null) {
+      homes = new ArrayList<>();
+      for(String key : homesSection.getKeys(false)) {
+        ConfigurationSection homeSection = homesSection.getConfigurationSection(key);
+        World world = Bukkit.getWorld(homeSection.getString("world"));
+        if(world == null) {
+          Bukkit.getLogger().log(Level.WARNING, "World `{0}` does not exist", homeSection.getString("world"));
+          continue;
+        }
+        homes.add(new Home(key,
+          new Location(
+            world,
+            homeSection.getDouble("x"),
+            homeSection.getDouble("y"),
+            homeSection.getDouble("z"),
+            (float)homeSection.getDouble("yaw"),
+            (float)homeSection.getDouble("pitch"))));
+      }
+    } else {
+      homes = Collections.emptyList();
+    }
   }
 
   boolean setSelectedEffect(ParticleEffect selectedEffect) {
@@ -115,6 +140,62 @@ public class User {
     return banExpiration;
   }
 
+  List<Home> getHomes() {
+    return homes;
+  }
+
+  Home getHome(String name) {
+    for(Home home : homes) {
+      if(home.getName().equalsIgnoreCase(name)) {
+        return home;
+      }
+    }
+    return null;
+  }
+
+  String getFirstHomeName() {
+    if(homes.isEmpty()) {
+      return null;
+    }
+
+    return homes.get(0).getName();
+  }
+
+  int getMaxHomes() {
+    int numOfHomes = main.getTrollskogenConfig().getNumHomesPermission(this);
+
+    if(isVerifiedDiscord) {
+      numOfHomes += main.getTrollskogenConfig().getDiscordVerifiedNumHomes();
+    }
+
+    return numOfHomes;
+  }
+
+  void setHome(String name, Location location) {
+    Home home = getHome(name);
+    if(home == null) {
+      if(homes.isEmpty()) {
+        homes = new ArrayList<>();
+      }
+      homes.add(new Home(name, location));
+      setDirty();
+    } else {
+      if(!home.getLocation().equals(location)) {
+        setDirty();
+      }
+      home.setLocation(location);
+    }
+  }
+
+  Home deleteHome(String name) {
+    Home home = getHome(name);
+    if(home != null) {
+      homes.remove(home);
+      setDirty();
+    }
+    return home;
+  }
+
   void ban(String banReason, LocalDateTime banExpiration) {
     boolean oldIsBanned = isBanned;
     String oldBanReason = this.banReason;
@@ -126,20 +207,34 @@ public class User {
 
     if(!oldIsBanned || !oldBanReason.equals(this.banReason) || !Objects.equals(oldBanExpiration, this.banExpiration)) {
       setDirty();
+      Bukkit.getPluginManager().callEvent(new BanUserEvent(this));
     }
   }
 
   void unban() {
     boolean oldIsBanned = isBanned;
-    String oldBanReason = this.banReason;
-    LocalDateTime oldBanExpiration = this.banExpiration;
+    String oldBanReason = banReason;
+    LocalDateTime oldBanExpiration = banExpiration;
 
     isBanned = false;
-    this.banReason = null;
-    this.banExpiration = null;
+    banReason = null;
+    banExpiration = null;
 
     if(oldIsBanned || oldBanReason != null || oldBanExpiration != null) {
       setDirty();
+      Bukkit.getPluginManager().callEvent(new UnbanUserEvent(this));
+    }
+  }
+
+  void unbanIfExpired() {
+    if(banExpiration == null) {
+      return;
+    }
+
+    LocalDateTime now = LocalDateTime.now();
+    if(banExpiration.isBefore(now) || banExpiration.isEqual(now)) {
+      Bukkit.getLogger().info(() -> String.format("%s's ban expired, unbanning.", lastSeenAs));
+      unban();
     }
   }
 

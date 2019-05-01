@@ -1,5 +1,6 @@
 package com.github.hornta.trollskogen;
 
+import org.bukkit.command.CommandSender;
 import se.hornta.carbon.ArgumentValidator;
 
 import java.text.DecimalFormat;
@@ -16,7 +17,7 @@ public class NumberInRangeValidator extends ArgumentValidator {
   }
 
   @Override
-  public boolean test(String arg) {
+  public boolean test(CommandSender sender, String arg) {
     int num;
     try {
       num = Integer.parseInt(arg);
@@ -32,14 +33,14 @@ public class NumberInRangeValidator extends ArgumentValidator {
   }
 
   @Override
-  public void setMessageValues(String s) {
+  public void setMessageValues(CommandSender sender, String s) {
     DecimalFormat formatter = new DecimalFormat("###,###.#");
     main.getMessageManager().setValue("min", formatter.format(min));
     main.getMessageManager().setValue("max", formatter.format(max));
   }
 
   @Override
-  public String getErrorMessage() {
+  public String getErrorMessage(CommandSender commandSender) {
     return "validate_number_range";
   }
 }

@@ -1,8 +1,16 @@
 package com.github.hornta.trollskogen;
 
+import com.github.hornta.trollskogen.events.NewUserEvent;
+import com.github.hornta.trollskogen.events.ReadUsersEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,10 +19,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
-class UserManager {
+class UserManager implements Listener {
   private Main main;
+  private static final long TICKS_PER_SECOND = 20;
+  private Set<User> tmpBannedUsers = new HashSet<>();
+  private static final long SECONDS_BETWEEN_UNBAN_CHECK = 10;
   private Map<UUID, User> userCache = new ConcurrentHashMap<>();
-  private Map<String, User> userNames = new ConcurrentHashMap<>();
+  private Map<String, User> nameToUser = new ConcurrentHashMap<>();
   private ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
   private File userDataFile;
   private static long DELAY = 5;
@@ -34,7 +45,28 @@ class UserManager {
       ex.printStackTrace();
     }
 
-    scheduledExecutor.submit(new UserReader());
+    Future<?> userReaderFuture = scheduledExecutor.submit(new UserReader());
+
+    // let everyone know when all users has been read into memory
+    new BukkitRunnable() {
+      @Override
+      public void run() {
+        if(userReaderFuture.isDone()) {
+          cancel();
+          Bukkit.getPluginManager().callEvent(new ReadUsersEvent());
+        }
+      }
+    }.runTaskTimer(main, 1, 1);
+
+    new BukkitRunnable() {
+      @Override
+      public void run() {
+        for(User user : tmpBannedUsers) {
+          user.unbanIfExpired();
+        }
+      }
+    }.runTaskTimer(main, 0, TICKS_PER_SECOND * SECONDS_BETWEEN_UNBAN_CHECK);
+
     scheduledExecutor.scheduleWithFixedDelay(new UserWriter(), DELAY, DELAY, TimeUnit.SECONDS);
   }
 
@@ -55,17 +87,67 @@ class UserManager {
     return userCache.computeIfAbsent(uuid, (UUID k) -> {
       pendingWrite = true;
       User user = new User(main, uuid);
-      userNames.put(user.getLastSeenAs(), user);
+      nameToUser.put(user.getLastSeenAs(), user);
       return user;
     });
   }
 
   User getUser(String name) {
-    return userNames.get(name.toLowerCase(Locale.ENGLISH));
+    return nameToUser.get(name.toLowerCase(Locale.ENGLISH));
   }
 
   void setPendingWrite() {
     pendingWrite = true;
+  }
+
+  @EventHandler
+  private void onPlayerJoin(PlayerJoinEvent event) {
+    User user = main.getUser(event.getPlayer());
+    user.setPlayer(event.getPlayer());
+
+    this.main.scheduleSyncDelayedTask(() -> {
+      if(!event.getPlayer().hasPlayedBefore()) {
+        event.getPlayer().saveData();
+        main.getMessageManager().setValue("player", event.getPlayer().getName());
+        main.getMessageManager().broadcast("first-join-message");
+
+        event.getPlayer().getInventory().setContents(main.getTrollskogenConfig().getStarterInventory());
+      }
+    });
+  }
+
+  @EventHandler
+  public void onPlayerLogin(PlayerLoginEvent e) {
+    boolean isNewUser = !userCache.containsKey(e.getPlayer().getUniqueId());
+    User user = main.getUser(e.getPlayer());
+
+    if(isNewUser) {
+      Bukkit.getPluginManager().callEvent(new NewUserEvent(user));
+    }
+
+    if(user.isBanned()) {
+      e.disallow(PlayerLoginEvent.Result.KICK_BANNED, user.getBanMessage());
+      return;
+    }
+
+    if(main.isMaintenance() && !main.isAllowedMaintenance(e.getPlayer())) {
+      e.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, main.getMessageManager().getMessage("try_join_maintenance"));
+    }
+  }
+
+  @EventHandler
+  private void onPlayerDisconnect(PlayerQuitEvent event) {
+    User user = main.getUser(event.getPlayer());
+    user.setSelectedEffect(null);
+  }
+
+  @EventHandler
+  private void onReadUsers(ReadUsersEvent event) {
+    for(User user : userCache.values()) {
+      if(user.isBanned() && user.getBanExpiration() != null) {
+        tmpBannedUsers.add(user);
+      }
+    }
   }
 
   private class UserReader implements Runnable {
@@ -81,7 +163,7 @@ class UserManager {
 
         Set<String> keys = userSection.getKeys(false);
         userCache.clear();
-        userNames.clear();
+        nameToUser.clear();
         for (String key : keys) {
           ConfigurationSection section = config.getConfigurationSection("users." + key);
           if (section == null) {
@@ -91,7 +173,7 @@ class UserManager {
 
           User user = new User(main, key, section);
           userCache.put(user.getPlayer().getUniqueId(), user);
-          userNames.put(user.getLastSeenAs().toLowerCase(Locale.ENGLISH), user);
+          nameToUser.put(user.getLastSeenAs().toLowerCase(Locale.ENGLISH), user);
           Bukkit.getLogger().log(Level.INFO, "Read user `" + user.getLastSeenAs() + "` from user cache");
         }
       } catch (Throwable t) {
@@ -124,6 +206,19 @@ class UserManager {
             section.set("banExpiration", user.getBanExpiration().toString());
           }
           section.set("selectedEffect", user.getSelectedEffect() == null ? null : user.getSelectedEffect().name());
+
+          if(!user.getHomes().isEmpty()) {
+            ConfigurationSection homesSection = section.createSection("homes");
+            for(Home home : user.getHomes()) {
+              ConfigurationSection homeSection = homesSection.createSection(home.getName());
+              homeSection.set("world", home.getLocation().getWorld().getName());
+              homeSection.set("x", home.getLocation().getX());
+              homeSection.set("y", home.getLocation().getY());
+              homeSection.set("z", home.getLocation().getZ());
+              homeSection.set("pitch", home.getLocation().getPitch());
+              homeSection.set("yaw", home.getLocation().getYaw());
+            }
+          }
         }
         try {
           config.save(userDataFile);
