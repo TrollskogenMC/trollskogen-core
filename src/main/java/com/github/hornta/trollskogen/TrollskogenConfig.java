@@ -20,10 +20,10 @@ public class TrollskogenConfig {
   TrollskogenConfig(Main main) {
     this.file = new Config(main, "config.yml");
     this.file.saveDefault();
-    this.load(this.file.getConfig());
+    this.load();
   }
 
-  private void load(FileConfiguration fc) {
+  private void load() {
     List<?> itemStacks = file.getConfig().getList("starter-inventory");
     if(itemStacks != null) {
       starterInventory = new ItemStack[itemStacks.size()];
@@ -41,6 +41,11 @@ public class TrollskogenConfig {
     }
 
     allowedMaintenance = file.getConfig().getStringList("maintenance");
+  }
+
+  public void reload() {
+    file.reloadConfig();
+    this.load();
   }
 
   private void save() {

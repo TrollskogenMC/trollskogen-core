@@ -76,7 +76,7 @@ public class User {
     }
   }
 
-  boolean setSelectedEffect(ParticleEffect selectedEffect) {
+  public boolean setSelectedEffect(ParticleEffect selectedEffect, boolean keep) {
     if(
       (selectedEffect == null && this.selectedEffect == null) ||
         (selectedEffect == this.selectedEffect)
@@ -84,8 +84,10 @@ public class User {
       return false;
     }
 
-    this.selectedEffect = selectedEffect;
-    setDirty();
+    if(!keep) {
+      this.selectedEffect = selectedEffect;
+      setDirty();
+    }
 
     if(!(player instanceof Player)) {
       return false;
@@ -128,7 +130,7 @@ public class User {
     return isVerifiedDiscord;
   }
 
-  boolean isBanned() {
+  public boolean isBanned() {
     return isBanned;
   }
 
@@ -140,11 +142,11 @@ public class User {
     return banExpiration;
   }
 
-  List<Home> getHomes() {
+  public List<Home> getHomes() {
     return homes;
   }
 
-  Home getHome(String name) {
+  public Home getHome(String name) {
     for(Home home : homes) {
       if(home.getName().equalsIgnoreCase(name)) {
         return home;
@@ -161,7 +163,7 @@ public class User {
     return homes.get(0).getName();
   }
 
-  int getMaxHomes() {
+  public int getMaxHomes() {
     int numOfHomes = main.getTrollskogenConfig().getNumHomesPermission(this);
 
     if(isVerifiedDiscord) {
@@ -171,7 +173,7 @@ public class User {
     return numOfHomes;
   }
 
-  void setHome(String name, Location location) {
+  public void setHome(String name, Location location) {
     Home home = getHome(name);
     if(home == null) {
       if(homes.isEmpty()) {
@@ -187,7 +189,7 @@ public class User {
     }
   }
 
-  Home deleteHome(String name) {
+  public Home deleteHome(String name) {
     Home home = getHome(name);
     if(home != null) {
       homes.remove(home);
@@ -196,7 +198,7 @@ public class User {
     return home;
   }
 
-  void ban(String banReason, LocalDateTime banExpiration) {
+  public void ban(String banReason, LocalDateTime banExpiration) {
     boolean oldIsBanned = isBanned;
     String oldBanReason = this.banReason;
     LocalDateTime oldBanExpiration = this.banExpiration;
@@ -211,7 +213,7 @@ public class User {
     }
   }
 
-  void unban() {
+  public void unban() {
     boolean oldIsBanned = isBanned;
     String oldBanReason = banReason;
     LocalDateTime oldBanExpiration = banExpiration;
@@ -242,7 +244,7 @@ public class User {
     main.getUserManager().setPendingWrite();
   }
 
-  String getBanMessage() {
+  public String getBanMessage() {
     String messageType;
     if(banExpiration == null) {
       messageType = "kickban_permanent";

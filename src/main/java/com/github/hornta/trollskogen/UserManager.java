@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
-class UserManager implements Listener {
+public class UserManager implements Listener {
   private Main main;
   private static final long TICKS_PER_SECOND = 20;
   private Set<User> tmpBannedUsers = new HashSet<>();
@@ -79,7 +79,7 @@ class UserManager implements Listener {
     scheduledExecutor.submit(new UserReader());
   }
 
-  Map<UUID, User> getUsers() {
+  public Map<UUID, User> getUsers() {
     return userCache;
   }
 
@@ -138,7 +138,7 @@ class UserManager implements Listener {
   @EventHandler
   private void onPlayerDisconnect(PlayerQuitEvent event) {
     User user = main.getUser(event.getPlayer());
-    user.setSelectedEffect(null);
+    user.setSelectedEffect(null, true);
   }
 
   @EventHandler

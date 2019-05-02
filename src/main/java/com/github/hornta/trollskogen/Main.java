@@ -1,7 +1,11 @@
 package com.github.hornta.trollskogen;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import com.github.hornta.trollskogen.commands.*;
+import com.github.hornta.trollskogen.completers.AnnouncementCompleter;
+import com.github.hornta.trollskogen.completers.EffectCompleter;
+import com.github.hornta.trollskogen.completers.HomeCompleter;
+import com.github.hornta.trollskogen.completers.PlayerCompleter;
+import com.github.hornta.trollskogen.validators.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -238,11 +242,16 @@ public final class Main extends JavaPlugin {
       .setNumberOfArguments(0);
 
     carbon
-      .addCommand("migrateessentials")
-      .withHandler(new CommandMigrateEssentials(this))
-      .setHelpText("/migrateessentials")
-      .requiresPermission("ts.migrateessentials")
-      .setNumberOfArguments(0);
+      .addCommand("phome")
+      .withHandler(new CommandPHome(this))
+      .setHelpText("/phome <player> <home>")
+      .requiresPermission("ts.phome")
+      .setNumberOfArguments(2)
+      .validateArgument(0, playerExistValidator)
+      .setTabComplete(0, playerCompleter)
+      .validateArgument(new int[] {0, 1}, homeExistValidator, homeExistValidator::testPlayerHome)
+      .setTabComplete(new int[] {0, 1}, homeCompleter, homeCompleter::getPlayerHomes)
+      .preventConsoleCommandSender();
   }
 
   @Override

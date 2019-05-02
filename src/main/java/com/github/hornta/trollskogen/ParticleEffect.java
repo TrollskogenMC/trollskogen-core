@@ -108,10 +108,6 @@ public enum ParticleEffect {
       return null;
     }
 
-    if(!ParticleEffect.BY_LABEL.containsKey(name)) {
-      return null;
-    }
-
     return ParticleEffect.BY_LABEL.get(name.toUpperCase(Locale.ENGLISH));
   }
 }
