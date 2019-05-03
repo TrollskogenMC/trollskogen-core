@@ -24,9 +24,9 @@ public class User {
   private String banReason;
   private List<Home> homes = Collections.emptyList();
 
-  User(Main main, UUID uuid) {
+  User(Main main, Player player) {
     this.main = main;
-    player = Bukkit.getOfflinePlayer(uuid);
+    this.player = player;
     lastSeenAs = player.getName();
     selectedEffect = null;
     isVerifiedDiscord = false;

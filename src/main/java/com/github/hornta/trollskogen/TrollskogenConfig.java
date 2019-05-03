@@ -59,8 +59,12 @@ public class TrollskogenConfig {
     this.save();
   }
 
-  public ItemStack[] getStarterInventory() {
-    return starterInventory;
+  public void setStarterInventory(User user) {
+    if(starterInventory == null) {
+      return;
+    }
+
+    ((Player)user.getPlayer()).getInventory().setContents(starterInventory);
   }
 
   int getDiscordVerifiedNumHomes() {

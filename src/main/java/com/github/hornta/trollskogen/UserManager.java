@@ -5,6 +5,7 @@ import com.github.hornta.trollskogen.events.ReadUsersEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -83,10 +84,10 @@ public class UserManager implements Listener {
     return userCache;
   }
 
-  User getUser(UUID uuid) {
-    return userCache.computeIfAbsent(uuid, (UUID k) -> {
+  User getUser(Player player) {
+    return userCache.computeIfAbsent(player.getUniqueId(), (UUID k) -> {
       pendingWrite = true;
-      User user = new User(main, uuid);
+      User user = new User(main, player);
       nameToUser.put(user.getLastSeenAs(), user);
       return user;
     });
@@ -111,7 +112,7 @@ public class UserManager implements Listener {
         main.getMessageManager().setValue("player", event.getPlayer().getName());
         main.getMessageManager().broadcast("first-join-message");
 
-        event.getPlayer().getInventory().setContents(main.getTrollskogenConfig().getStarterInventory());
+        main.getTrollskogenConfig().setStarterInventory(user);
       }
     });
   }

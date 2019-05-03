@@ -293,12 +293,12 @@ public final class Main extends JavaPlugin {
   }
 
   public User getUser(Player player) {
-    return userManager.getUser(player.getUniqueId());
+    return userManager.getUser(player);
   }
 
   public User getUser(CommandSender commandSender) {
     if(commandSender instanceof Player) {
-      return userManager.getUser(((Player) commandSender).getUniqueId());
+      return userManager.getUser((Player)commandSender);
     }
     return null;
   }
