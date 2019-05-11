@@ -36,7 +36,7 @@ public class Announcements {
     loadFromConfig();
 
     // restart task if interval changes during reload
-    if(interval != oldInterval) {
+    if (interval != oldInterval) {
       task.cancel();
       task = new AnnouncementTask(plugin, this);
       task.runTaskTimer(plugin, 0L, interval * 20);
@@ -68,7 +68,7 @@ public class Announcements {
   public void setInterval(long interval) {
     config.getConfig().set("interval", interval);
     config.save();
-    if(this.interval != interval) {
+    if (this.interval != interval) {
       task.cancel();
       task = new AnnouncementTask(plugin, this);
       task.runTaskTimer(plugin, 0L, interval * 20);
@@ -84,7 +84,7 @@ public class Announcements {
 
     ConfigurationSection announcementsSection = config.getConfig().getConfigurationSection("announcements");
 
-    if(announcementsSection != null) {
+    if (announcementsSection != null) {
       for (String key : announcementsSection.getKeys(false)) {
         String message = announcementsSection.getString(key);
         announcements.put(key, new Announcement(key, message));
@@ -103,7 +103,9 @@ public class Announcements {
   }
 
   void save() {
-    config.getConfig().set("lastExecuted", announcementsList.get(currentAnnouncementIndex));
+    if (announcementsList.size() < currentAnnouncementIndex) {
+      config.getConfig().set("lastExecuted", announcementsList.get(currentAnnouncementIndex));
+    }
     config.save();
   }
 
@@ -118,11 +120,11 @@ public class Announcements {
   }
 
   Announcement getNextAnnouncement() {
-    if(announcements.size() == 0) {
+    if (announcements.size() == 0) {
       return null;
     }
 
-    if(currentAnnouncementIndex == announcements.size() - 1) {
+    if (currentAnnouncementIndex == announcements.size() - 1) {
       currentAnnouncementIndex = 0;
     } else {
       currentAnnouncementIndex += 1;

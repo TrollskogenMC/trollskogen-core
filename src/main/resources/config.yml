@@ -3,5 +3,6 @@ home_perms:
   default: 1
   vip: 3
 maintenance:
-  - horntaf
+  - hornta
   - philip2096
+api_url: http://localhost:8080

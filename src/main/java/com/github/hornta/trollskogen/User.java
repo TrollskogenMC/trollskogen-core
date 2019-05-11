@@ -18,7 +18,7 @@ public class User {
   private OfflinePlayer player;
   private String lastSeenAs;
   private ParticleEffect selectedEffect;
-  private boolean isVerifiedDiscord;
+  private boolean isDiscordVerified;
   private boolean isBanned;
   private LocalDateTime banExpiration;
   private String banReason;
@@ -29,7 +29,7 @@ public class User {
     this.player = player;
     lastSeenAs = player.getName();
     selectedEffect = null;
-    isVerifiedDiscord = false;
+    isDiscordVerified = false;
     isBanned = false;
     banReason = null;
     banExpiration = null;
@@ -39,7 +39,7 @@ public class User {
     this.main = main;
     lastSeenAs = config.getString("lastSeenAs");
     selectedEffect = ParticleEffect.getParticleEffect(config.getString("selectedEffect"));
-    isVerifiedDiscord = config.getBoolean("isVerifiedDiscord");
+    isDiscordVerified = config.getBoolean("isDiscordVerified");
     isBanned = config.getBoolean("isBanned");
     banReason = config.getString("banReason");
 
@@ -126,8 +126,15 @@ public class User {
     return selectedEffect;
   }
 
-  public boolean isVerifiedDiscord() {
-    return isVerifiedDiscord;
+  public boolean isDiscordVerified() {
+    return isDiscordVerified;
+  }
+
+  public void setDiscordVerified(boolean discordVerified) {
+    if(isDiscordVerified != discordVerified) {
+      isDiscordVerified = discordVerified;
+      setDirty();
+    }
   }
 
   public boolean isBanned() {
@@ -166,7 +173,7 @@ public class User {
   public int getMaxHomes() {
     int numOfHomes = main.getTrollskogenConfig().getNumHomesPermission(this);
 
-    if(isVerifiedDiscord) {
+    if(isDiscordVerified) {
       numOfHomes += main.getTrollskogenConfig().getDiscordVerifiedNumHomes();
     }
 

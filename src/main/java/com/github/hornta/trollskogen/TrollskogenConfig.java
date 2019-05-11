@@ -16,6 +16,7 @@ public class TrollskogenConfig {
   private int discordVerifiedNumHomes;
   private Map<String, Integer> homePermissions = Collections.emptyMap();
   private List<String> allowedMaintenance;
+  private String APIUrl;
 
   TrollskogenConfig(Main main) {
     this.file = new Config(main, "config.yml");
@@ -41,6 +42,7 @@ public class TrollskogenConfig {
     }
 
     allowedMaintenance = file.getConfig().getStringList("maintenance");
+    APIUrl = file.getConfig().getString("api_url");
   }
 
   public void reload() {
@@ -87,5 +89,9 @@ public class TrollskogenConfig {
 
   public List<String> getAllowedMaintenance() {
     return allowedMaintenance;
+  }
+
+  public String getAPIUrl() {
+    return APIUrl;
   }
 }

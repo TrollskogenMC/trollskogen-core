@@ -16,3 +16,5 @@ commands:
   homes:
   maintenance:
   phome:
+  verify:
+  callevent:

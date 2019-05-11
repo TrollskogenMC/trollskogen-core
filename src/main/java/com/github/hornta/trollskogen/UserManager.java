@@ -93,6 +93,10 @@ public class UserManager implements Listener {
     });
   }
 
+  User getUser(UUID uuid) {
+    return userCache.get(uuid);
+  }
+
   User getUser(String name) {
     return nameToUser.get(name.toLowerCase(Locale.ENGLISH));
   }
@@ -199,7 +203,7 @@ public class UserManager implements Listener {
           User user = entry.getValue();
           ConfigurationSection section = usersSection.createSection(entry.getKey().toString());
           section.set("lastSeenAs", user.getLastSeenAs());
-          section.set("isDiscordVerified", user.isVerifiedDiscord());
+          section.set("isDiscordVerified", user.isDiscordVerified());
           section.set("isBanned", user.isBanned());
           section.set("banReason", user.getBanReason());
           LocalDateTime banExpiration = user.getBanExpiration();

@@ -57,3 +57,10 @@ toggle_maintenance_on: "§eUnderhållsläge aktiverat."
 toggle_maintenance_off: "§eUnderhållsläge inaktiverat."
 try_join_maintenance: "Servern står i underhållsläge."
 kick_maintenance: "Servern sattes i underhållsläge."
+already_verified: "§eDitt konto är redan verifierat."
+verify_error: "§cNågot gick fel vid verifieringen."
+verified_success: "§e<player_name> har verifierat sig mot Discord med /verify"
+verified_on_discord: |
+
+  §eSkicka ett PM till §fTroll Zeke§e på Discord för att bli verifierad:
+  §7verify <token>

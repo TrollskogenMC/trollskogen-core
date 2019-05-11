@@ -5,7 +5,9 @@ import com.github.hornta.trollskogen.completers.AnnouncementCompleter;
 import com.github.hornta.trollskogen.completers.EffectCompleter;
 import com.github.hornta.trollskogen.completers.HomeCompleter;
 import com.github.hornta.trollskogen.completers.PlayerCompleter;
+import com.github.hornta.trollskogen.events.BanUserEvent;
 import com.github.hornta.trollskogen.validators.*;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -252,6 +254,21 @@ public final class Main extends JavaPlugin {
       .validateArgument(new int[] {0, 1}, homeExistValidator, homeExistValidator::testPlayerHome)
       .setTabComplete(new int[] {0, 1}, homeCompleter, homeCompleter::getPlayerHomes)
       .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("verify")
+      .withHandler(new CommandVerify(this))
+      .setHelpText("/verify")
+      .requiresPermission("ts.verify")
+      .setNumberOfArguments(0)
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("callevent")
+      .withHandler(new CommandCallEvent(this))
+      .setHelpText("/callevent <event> [args]")
+      .setMinNumberOfArguments(1)
+      .preventPlayerCommandSender();
   }
 
   @Override
@@ -290,6 +307,10 @@ public final class Main extends JavaPlugin {
 
   public User getUser(String name) {
     return userManager.getUser(name);
+  }
+
+  public User getUser(UUID uuid) {
+    return userManager.getUser(uuid);
   }
 
   public User getUser(Player player) {
