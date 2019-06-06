@@ -1,7 +1,5 @@
 package com.github.hornta.trollskogen;
 
-import org.bukkit.command.CommandSender;
-
 import java.util.Arrays;
 
 public class BaseCommand {

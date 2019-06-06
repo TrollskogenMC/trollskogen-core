@@ -19,7 +19,6 @@ import java.util.logging.Level;
 
 public class CommandVerify implements ICommandHandler, Listener {
   private Main main;
-  private AsyncHttpClient asyncHttpClient = asyncHttpClient();
 
   public CommandVerify(Main main) {
     this.main = main;
@@ -34,7 +33,7 @@ public class CommandVerify implements ICommandHandler, Listener {
       return;
     }
 
-    asyncHttpClient
+    main.getAsyncHttpClient()
       .prepareGet(main.getTrollskogenConfig().getAPIUrl() + "/create-token")
       .addQueryParam("userId", user.getPlayer().getUniqueId().toString())
       .addQueryParam("lastSeenAs", user.getLastSeenAs())

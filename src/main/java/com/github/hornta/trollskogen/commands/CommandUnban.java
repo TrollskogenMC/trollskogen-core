@@ -28,7 +28,7 @@ public class CommandUnban implements ICommandHandler {
 
     main.getMessageManager().setValue("player", user.getLastSeenAs());
     String unbanMessage = main.getMessageManager().getMessage("player_unban");
-    Bukkit.broadcastMessage(unbanMessage);
+    main.getMessageManager().sendMessage(commandSender, unbanMessage);
     Bukkit.getLogger().log(Level.INFO, unbanMessage);
   }
 }

@@ -2,6 +2,7 @@ name: Trollskogen
 version: ${project.version}
 main: com.github.hornta.trollskogen.Main
 api-version: 1.13
+depend: [HolographicDisplays]
 commands:
   ts:
   hat:
@@ -18,3 +19,6 @@ commands:
   phome:
   verify:
   callevent:
+  race:
+  playsong:
+  stopsong:

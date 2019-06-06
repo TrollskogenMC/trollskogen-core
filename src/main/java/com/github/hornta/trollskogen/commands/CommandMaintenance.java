@@ -23,9 +23,9 @@ public class CommandMaintenance implements ICommandHandler {
         }
       }
 
-      main.getMessageManager().sendMessage("toggle_maintenance_on", sender);
+      main.getMessageManager().sendMessage(sender, "toggle_maintenance_on");
     } else {
-      main.getMessageManager().sendMessage("toggle_maintenance_off", sender);
+      main.getMessageManager().sendMessage(sender, "toggle_maintenance_off");
     }
   }
 }

@@ -1,12 +1,21 @@
 package com.github.hornta.trollskogen;
 
+import com.github.hornta.trollskogen.announcements.*;
+import com.github.hornta.trollskogen.announcements.commands.*;
 import com.github.hornta.trollskogen.commands.*;
-import com.github.hornta.trollskogen.completers.AnnouncementCompleter;
-import com.github.hornta.trollskogen.completers.EffectCompleter;
-import com.github.hornta.trollskogen.completers.HomeCompleter;
-import com.github.hornta.trollskogen.completers.PlayerCompleter;
-import com.github.hornta.trollskogen.events.BanUserEvent;
+import com.github.hornta.trollskogen.completers.*;
+import com.github.hornta.trollskogen.effects.commands.CommandHat;
+import com.github.hornta.trollskogen.effects.EffectCompleter;
+import com.github.hornta.trollskogen.effects.EffectValidator;
+import com.github.hornta.trollskogen.effects.commands.CommandEffectReset;
+import com.github.hornta.trollskogen.effects.commands.CommandEffectUse;
+import com.github.hornta.trollskogen.effects.ParticleManager;
+import com.github.hornta.trollskogen.homes.*;
+import com.github.hornta.trollskogen.homes.commands.*;
+import com.github.hornta.trollskogen.racing.Racing;
 import com.github.hornta.trollskogen.validators.*;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,6 +28,9 @@ import se.hornta.carbon.MessageManager;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static org.asynchttpclient.Dsl.asyncHttpClient;
+import static org.asynchttpclient.Dsl.config;
+
 public final class Main extends JavaPlugin {
   private Announcements announcements;
   private MessageManager messageManager;
@@ -26,11 +38,28 @@ public final class Main extends JavaPlugin {
   private TrollskogenConfig trollskogenConfig;
   private UserManager userManager;
   private ParticleManager particleManager;
+  private AsyncHttpClient asyncHttpClient;
+  private Racing racing;
+  private SongManager songManager;
 
-  private boolean isMaintenance = false;
+  private boolean isMaintenance;
 
   @Override
   public void onEnable() {
+    if (!Bukkit.getPluginManager().isPluginEnabled("NoteBlockAPI")) {
+      this.getLogger().severe("*** NoteBlockAPI is not installed or not enabled. ***");
+      this.getLogger().severe("*** This plugin will be disabled. ***");
+      this.setEnabled(false);
+      return;
+    }
+
+    new VersionManager();
+
+    DefaultAsyncHttpClientConfig.Builder config = config();
+    config.setConnectTimeout(1000);
+    config.setRequestTimeout(1000);
+    asyncHttpClient = asyncHttpClient(config);
+
     announcements = new Announcements(this);
     messageManager = new MessageManager(this);
     carbon = new Carbon(messageManager);
@@ -38,13 +67,15 @@ public final class Main extends JavaPlugin {
     trollskogenConfig = new TrollskogenConfig(this);
     userManager = new UserManager(this);
     particleManager = new ParticleManager(this);
+    racing = new Racing(this);
+    songManager = new SongManager(this);
 
     getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
     getServer().getPluginManager().registerEvents(userManager, this);
     getServer().getPluginManager().registerEvents(particleManager, this);
+    getServer().getPluginManager().registerEvents(racing, this);
 
-    AnnouncementExistValidator announcementExistsValidator = new AnnouncementExistValidator(this);
-    AnnouncementCompleter announcementCompleter = new AnnouncementCompleter(this);
+    Announcements.setupCommands(this);
 
     carbon
       .addCommand("ts", "setstarterkit")
@@ -68,75 +99,6 @@ public final class Main extends JavaPlugin {
       .requiresPermission("ts.hat")
       .setHelpText("/hat")
       .preventConsoleCommandSender();
-
-    carbon
-      .addCommand("announcement")
-      .withHandler(new CommandAnnouncement(this))
-      .setNumberOfArguments(0)
-      .requiresPermission("ts.announcement")
-      .setHelpText("/announcement");
-
-    carbon
-      .addCommand("announcement", "enable")
-      .withHandler(new CommandAnnouncementEnable(this))
-      .setNumberOfArguments(0)
-      .requiresPermission("ts.announcement.enable")
-      .setHelpText("/announcement enable");
-
-    carbon
-      .addCommand("announcement", "disable")
-      .withHandler(new CommandAnnouncementDisable(this))
-      .setNumberOfArguments(0)
-      .requiresPermission("ts.announcement.disable")
-      .setHelpText("/announcement disable");
-
-    carbon
-      .addCommand("announcement", "set")
-      .withHandler(new CommandAnnouncementSet(this))
-      .setMinNumberOfArguments(2)
-      .setHelpText("/announcement set <id> <message>")
-      .requiresPermission("ts.announcement.set")
-      .setTabComplete(0, announcementCompleter);
-
-    carbon
-      .addCommand("announcement", "delete")
-      .withHandler(new CommandAnnouncementDelete(this))
-      .setNumberOfArguments(1)
-      .setHelpText("/announcement delete <id>")
-      .requiresPermission("ts.announcement.delete")
-      .setTabComplete(0, announcementCompleter)
-      .validateArgument(0, announcementExistsValidator);
-
-    carbon
-      .addCommand("announcement", "list")
-      .withHandler(new CommandAnnouncementList(this))
-      .setNumberOfArguments(0)
-      .setHelpText("/announcement list")
-      .requiresPermission("ts.announcement.list");
-
-    carbon
-      .addCommand("announcement", "read")
-      .withHandler(new CommandAnnouncementRead(this))
-      .setNumberOfArguments(1)
-      .setHelpText("/announcement read <id>")
-      .requiresPermission("ts.announcement.read")
-      .setTabComplete(0, announcementCompleter)
-      .validateArgument(0, announcementExistsValidator);
-
-    carbon
-      .addCommand("announcement", "interval")
-      .withHandler(new CommandAnnouncementInterval(this))
-      .setNumberOfArguments(0)
-      .setHelpText("/announcement interval")
-      .requiresPermission("ts.announcement.interval");
-
-    carbon
-      .addCommand("announcement", "interval", "set")
-      .withHandler(new CommandAnnouncementIntervalSet(this))
-      .setHelpText("/announcement interval set <seconds>")
-      .requiresPermission("ts.announcement.interval.set")
-      .setNumberOfArguments(1)
-      .validateArgument(0, new NumberInRangeValidator(this, 1, Integer.MAX_VALUE));
 
     carbon
       .addCommand("ts", "help")
@@ -269,12 +231,30 @@ public final class Main extends JavaPlugin {
       .setHelpText("/callevent <event> [args]")
       .setMinNumberOfArguments(1)
       .preventPlayerCommandSender();
+
+    carbon
+      .addCommand("playsong")
+      .withHandler(new CommandPlaySong(this))
+      .setHelpText("/playsong <song>")
+      .setNumberOfArguments(1)
+      .validateArgument(0, new SongExistValidator(this))
+      .setTabComplete(0, new SongCompleter(this))
+      .requiresPermission("ts.playsong")
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("stopsong")
+      .withHandler(new CommandStopSong(this))
+      .setHelpText("/stopsong <song>")
+      .requiresPermission("ts.stopsong")
+      .preventConsoleCommandSender();
   }
 
   @Override
   public void onDisable() {
     announcements.save();
     userManager.shutdown();
+    racing.shutdown();
   }
 
   public int scheduleSyncDelayedTask(final Runnable run) {
@@ -303,6 +283,14 @@ public final class Main extends JavaPlugin {
 
   public ParticleManager getParticleManager() {
     return particleManager;
+  }
+
+  public Racing getRacing() {
+    return racing;
+  }
+
+  public SongManager getSongManager() {
+    return songManager;
   }
 
   public User getUser(String name) {
@@ -353,5 +341,9 @@ public final class Main extends JavaPlugin {
       }
     }
     return false;
+  }
+
+  public AsyncHttpClient getAsyncHttpClient() {
+    return asyncHttpClient;
   }
 }

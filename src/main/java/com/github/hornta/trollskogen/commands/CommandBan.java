@@ -51,6 +51,6 @@ public class CommandBan extends BaseCommand implements ICommandHandler {
     String banMessage = main.getMessageManager().getMessage(messageType);
 
     Bukkit.getLogger().log(Level.INFO, banMessage);
-    Bukkit.broadcastMessage(banMessage);
+    main.getMessageManager().sendMessage(commandSender, banMessage);
   }
 }

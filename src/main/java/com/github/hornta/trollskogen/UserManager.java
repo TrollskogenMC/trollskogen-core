@@ -2,6 +2,7 @@ package com.github.hornta.trollskogen;
 
 import com.github.hornta.trollskogen.events.NewUserEvent;
 import com.github.hornta.trollskogen.events.ReadUsersEvent;
+import com.github.hornta.trollskogen.homes.Home;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
