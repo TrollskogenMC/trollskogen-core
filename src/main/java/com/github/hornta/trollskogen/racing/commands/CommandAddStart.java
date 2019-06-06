@@ -5,6 +5,7 @@ import com.github.hornta.trollskogen.racing.events.AddRaceStartPointEvent;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.objects.RaceStartPoint;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import se.hornta.carbon.ICommandHandler;
@@ -28,7 +29,12 @@ public class CommandAddStart implements ICommandHandler {
 
     Player player = (Player)commandSender;
 
-    main.getRacing().addRaceStart(player.getLocation(), race, (RaceStartPoint startPoint) -> {
+    Location location = player.getLocation().clone();
+    location.setX(location.getBlockX());
+    location.setY(location.getBlockY());
+    location.setZ(location.getBlockZ());
+
+    main.getRacing().addRaceStart(location, race, (RaceStartPoint startPoint) -> {
       main.getMessageManager().setValue("race_name", race.getName());
       main.getMessageManager().setValue("position", startPoint.getPosition());
       main.getMessageManager().sendMessage(player, "race_start_point_set");

@@ -76,6 +76,7 @@ public final class Main extends JavaPlugin {
     getServer().getPluginManager().registerEvents(racing, this);
 
     Announcements.setupCommands(this);
+    Racing.setupCommands(this);
 
     carbon
       .addCommand("ts", "setstarterkit")

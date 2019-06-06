@@ -20,6 +20,8 @@ import com.github.hornta.trollskogen.validators.RegexValidator;
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.google.gson.*;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.RequestBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -27,6 +29,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -47,22 +50,18 @@ public class Racing implements Listener {
     this.main = main;
 
     Bukkit.getLogger().info("Loading races...");
-    main.getAsyncHttpClient()
-      .prepareGet(main.getTrollskogenConfig().getAPIUrl() + "/races")
+    prepareRequest(Method.GET, "/races")
       .execute()
       .toCompletableFuture()
-      .thenAccept(new HandleRequest((JsonElement json) -> {
-        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, () -> {
-          JsonArray jsonRaces = json.getAsJsonObject().get("races").getAsJsonArray();
-          for(JsonElement jsonRace : jsonRaces) {
-            Race race = parseRace(jsonRace.getAsJsonObject());
-            races.put(race.getName(), race);
-            Bukkit.getPluginManager().callEvent(new AddRaceEvent(race));
-          }
-          Bukkit.getLogger().info("Finished loading " + races.size() + " races.");
-        });
-      }));
-    setupCommands();
+      .thenAccept(new HandleRequest((JsonElement json) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, () -> {
+        JsonArray jsonRaces = json.getAsJsonObject().get("races").getAsJsonArray();
+        for(JsonElement jsonRace : jsonRaces) {
+          Race race = parseRace(jsonRace.getAsJsonObject());
+          races.put(race.getName(), race);
+          Bukkit.getPluginManager().callEvent(new AddRaceEvent(race));
+        }
+        Bukkit.getLogger().info("Finished loading " + races.size() + " races.");
+      })));
   }
 
   public void shutdown() {
@@ -174,18 +173,15 @@ public class Racing implements Listener {
     json.addProperty("is_editing", true);
     json.addProperty("is_enabled", false);
     json.addProperty("is_started", false);
-    json.addProperty("spawn_x", Math.round(location.getBlock().getLocation().getX()));
-    json.addProperty("spawn_y", Math.round(location.getBlock().getLocation().getY()));
-    json.addProperty("spawn_z", Math.round(location.getBlock().getLocation().getZ()));
+    json.addProperty("spawn_x", location.getBlockX());
+    json.addProperty("spawn_y", location.getBlockY());
+    json.addProperty("spawn_z", location.getBlockZ());
     json.addProperty("spawn_pitch", location.getPitch());
     json.addProperty("spawn_yaw", location.getYaw());
     json.addProperty("spawn_world", location.getWorld().getName());
     json.addProperty("type", RacingType.PLAYER.toString().toLowerCase(Locale.ENGLISH));
 
-    main.getAsyncHttpClient()
-      .preparePost(main.getTrollskogenConfig().getAPIUrl() + "/races/race")
-      .setBody(json.toString())
-      .setHeader("Content-Type", "application/json")
+    prepareRequest(Method.POST, "/races/race", json)
       .execute()
       .toCompletableFuture()
       .exceptionally((Throwable t) -> {
@@ -202,10 +198,8 @@ public class Racing implements Listener {
 
   public void deleteRace(Race race, Runnable runnable) {
     JsonPrimitive json = new JsonPrimitive(race.getId());
-    main.getAsyncHttpClient()
-      .prepareDelete(main.getTrollskogenConfig().getAPIUrl() + "/races/race")
-      .setBody(json.toString())
-      .setHeader("Content-Type", "application/json")
+
+    prepareRequest(Method.DELETE, "/races/race", json)
       .execute()
       .toCompletableFuture()
       .exceptionally((Throwable t) -> {
@@ -219,33 +213,48 @@ public class Racing implements Listener {
       })));
   }
 
-  public void addRaceStart(Location location, Race race, Consumer<RaceStartPoint> callback) {
-    Location copiedLocation = location.clone();
-    copiedLocation.setX(Math.round(location.getBlock().getLocation().getX()));
-    copiedLocation.setY(Math.round(location.getBlock().getLocation().getY()));
-    copiedLocation.setZ(Math.round(location.getBlock().getLocation().getZ()));
+  public void updateRace(Race race, Runnable runnable) {
+    JsonObject json = new JsonObject();
+    json.addProperty("id", race.getId());
+    json.addProperty("name", race.getName());
+    json.addProperty("is_editing", race.isEditing());
+    json.addProperty("is_enabled", race.isEnabled());
+    json.addProperty("spawn_x", Math.round(race.getSpawn().getX()));
+    json.addProperty("spawn_y", Math.round(race.getSpawn().getX()));
+    json.addProperty("spawn_z", Math.round(race.getSpawn().getX()));
+    json.addProperty("spawn_pitch", race.getSpawn().getPitch());
+    json.addProperty("spawn_yaw", race.getSpawn().getYaw());
+    json.addProperty("spawn_world", race.getSpawn().getWorld().getName());
 
+    prepareRequest(Method.PUT, "/races/race", json)
+      .execute()
+      .toCompletableFuture()
+      .exceptionally((Throwable t) -> {
+        Bukkit.getLogger().log(Level.SEVERE, t.getMessage(), t);
+        return null;
+      })
+      .thenAccept(new HandleRequest((JsonElement response) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, runnable)));
+  }
+
+  public void addRaceStart(Location location, Race race, Consumer<RaceStartPoint> callback) {
     int position = race.getStartPoints().size() + 1;
 
     JsonObject json = new JsonObject();
     json.addProperty("race_id", race.getId());
     json.addProperty("position", position);
-    json.addProperty("location_x", copiedLocation.getX());
-    json.addProperty("location_y", copiedLocation.getY());
-    json.addProperty("location_z", copiedLocation.getZ());
+    json.addProperty("location_x", location.getX());
+    json.addProperty("location_y", location.getY());
+    json.addProperty("location_z", location.getZ());
     json.addProperty("location_yaw", location.getYaw());
     json.addProperty("location_pitch", location.getPitch());
     json.addProperty("location_world", location.getWorld().getName());
 
-    main.getAsyncHttpClient()
-      .preparePost(main.getTrollskogenConfig().getAPIUrl() + "/races/race/addStart")
-      .setBody(json.toString())
-      .setHeader("Content-Type", "application/json")
+    prepareRequest(Method.POST, "/races/race/addStart", json)
       .execute()
       .toCompletableFuture()
       .thenAccept(new HandleRequest((JsonElement object) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, () -> {
         int id = object.getAsJsonObject().get("startPointId").getAsInt();
-        RaceStartPoint startPoint = new RaceStartPoint(id, copiedLocation.add(StartPointOffset), position);
+        RaceStartPoint startPoint = new RaceStartPoint(id, location.add(StartPointOffset), position);
         race.addStartPoint(startPoint);
         callback.accept(startPoint);
       })));
@@ -256,10 +265,7 @@ public class Racing implements Listener {
     json.addProperty("race_id", race.getId());
     json.addProperty("start_position", startPoint.getPosition());
 
-    main.getAsyncHttpClient()
-      .prepareDelete(main.getTrollskogenConfig().getAPIUrl() + "/races/race/start")
-      .setBody(json.toString())
-      .setHeader("Content-Type", "application/json")
+    prepareRequest(Method.DELETE, "/races/race/start", json)
       .execute()
       .toCompletableFuture()
       .thenAccept(new HandleRequest((JsonElement object) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, () -> {
@@ -277,25 +283,21 @@ public class Racing implements Listener {
   }
 
   public void addPoint(Location location, Race race, Consumer<RaceCheckpoint> callback) {
-    Location copiedLocation = location.clone();
-    copiedLocation.setX(location.getBlockX());
-    copiedLocation.setY(location.getBlockY());
-    copiedLocation.setZ(location.getBlockZ());
-
     int position = race.getCheckpoints().size() + 1;
     int radius = 3;
 
-    main.getAsyncHttpClient()
-      .preparePost(main.getTrollskogenConfig().getAPIUrl() + "/race/point")
-      .addQueryParam("race_id", String.valueOf(race.getId()))
-      .addQueryParam("position", String.valueOf(position))
-      .addQueryParam("location_x", String.valueOf(copiedLocation.getX()))
-      .addQueryParam("location_y", String.valueOf(copiedLocation.getY()))
-      .addQueryParam("location_z", String.valueOf(copiedLocation.getZ()))
-      .addQueryParam("location_pitch", String.valueOf(copiedLocation.getPitch()))
-      .addQueryParam("location_yaw", String.valueOf(copiedLocation.getYaw()))
-      .addQueryParam("location_world", copiedLocation.getWorld().getName())
-      .addQueryParam("radius", String.valueOf(radius))
+    JsonObject json = new JsonObject();
+    json.addProperty("race_id", race.getId());
+    json.addProperty("position", position);
+    json.addProperty("location_x", location.getX());
+    json.addProperty("location_y", location.getY());
+    json.addProperty("location_z", location.getZ());
+    json.addProperty("location_pitch", location.getPitch());
+    json.addProperty("location_yaw", location.getYaw());
+    json.addProperty("location_world", location.getWorld().getName());
+    json.addProperty("radius", radius);
+
+    prepareRequest(Method.POST, "/race/point", json)
       .execute()
       .toCompletableFuture()
       .exceptionally((Throwable t) -> {
@@ -303,7 +305,7 @@ public class Racing implements Listener {
         return null;
       })
       .thenAccept(new HandleRequest((JsonElement object) -> Bukkit.getScheduler().scheduleSyncDelayedTask(main,() -> {
-        RaceCheckpoint checkpoint = new RaceCheckpoint(object.getAsJsonObject().get("racePointId").getAsInt(), position, copiedLocation.add(CheckpointOffset), radius);
+        RaceCheckpoint checkpoint = new RaceCheckpoint(object.getAsJsonObject().get("racePointId").getAsInt(), position, location.add(CheckpointOffset), radius);
         race.addPoint(checkpoint);
         Bukkit.getPluginManager().callEvent(new AddRaceCheckpointEvent(race, checkpoint));
         callback.accept(checkpoint);
@@ -311,10 +313,11 @@ public class Racing implements Listener {
   }
 
   public void deletePoint(Race race, RaceCheckpoint checkpoint, Runnable runnable) {
-    main.getAsyncHttpClient()
-      .prepareDelete(main.getTrollskogenConfig().getAPIUrl() + "/race/point")
-      .addQueryParam("race_id", String.valueOf(race.getId()))
-      .addQueryParam("race_point", String.valueOf(checkpoint.getPosition()))
+    JsonObject json = new JsonObject();
+    json.addProperty("race_id", race.getId());
+    json.addProperty("race_point", checkpoint.getPosition());
+
+    prepareRequest(Method.DELETE, "/race/point", json)
       .execute()
       .toCompletableFuture()
       .exceptionally((Throwable t) -> {
@@ -335,6 +338,30 @@ public class Racing implements Listener {
       })));
   }
 
+  private BoundRequestBuilder prepareRequest(Method method, String url, JsonElement data) {
+    RequestBuilder requestBuilder = new RequestBuilder();
+
+    if(data != null) {
+      requestBuilder.setBody(data.toString());
+      requestBuilder.setHeader("Content-Type", "application/json");
+    }
+
+    requestBuilder.setMethod(method.name());
+    requestBuilder.setUrl(main.getTrollskogenConfig().getAPIUrl() + url);
+    return main.getAsyncHttpClient().prepareRequest(requestBuilder);
+  }
+
+  private BoundRequestBuilder prepareRequest(Method method, String url) {
+    return prepareRequest(method, url, null);
+  }
+
+  private enum Method {
+    GET,
+    POST,
+    PUT,
+    DELETE
+  };
+
   public Race getRace(String name) {
     return races.get(name);
   }
@@ -347,15 +374,15 @@ public class Racing implements Listener {
     return races.containsKey(name);
   }
 
-  private void setupCommands() {
+  public static void setupCommands(Main main) {
     RaceExistValidator raceShouldExist = new RaceExistValidator(main, true);
     RaceExistValidator raceShouldNotExist = new RaceExistValidator(main, false);
-    RaceCompleter raceCompleter = new RaceCompleter(this);
+    RaceCompleter raceCompleter = new RaceCompleter(main.getRacing());
     RegexValidator raceNameValidator = new RegexValidator(main, raceNamePattern, "race_name_format");
     PointExistValidator pointShouldExist = new PointExistValidator(main, true);
-    PointCompleter pointCompleter = new PointCompleter(this);
+    PointCompleter pointCompleter = new PointCompleter(main.getRacing());
     StartPointExistValidator startPointShouldExist = new StartPointExistValidator(main, true);
-    StartPointCompleter startPointCompleter = new StartPointCompleter(this);
+    StartPointCompleter startPointCompleter = new StartPointCompleter(main.getRacing());
 
     main.getCarbon()
       .addCommand("race", "create")
@@ -552,32 +579,6 @@ public class Racing implements Listener {
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.stop");
-  }
-
-  public void updateRace(Race race, Runnable runnable) {
-    JsonObject json = new JsonObject();
-    json.addProperty("id", race.getId());
-    json.addProperty("name", race.getName());
-    json.addProperty("is_editing", race.isEditing());
-    json.addProperty("is_enabled", race.isEnabled());
-    json.addProperty("spawn_x", Math.round(race.getSpawn().getX()));
-    json.addProperty("spawn_y", Math.round(race.getSpawn().getX()));
-    json.addProperty("spawn_z", Math.round(race.getSpawn().getX()));
-    json.addProperty("spawn_pitch", race.getSpawn().getPitch());
-    json.addProperty("spawn_yaw", race.getSpawn().getYaw());
-    json.addProperty("spawn_world", race.getSpawn().getWorld().getName());
-
-    main.getAsyncHttpClient()
-      .preparePut(main.getTrollskogenConfig().getAPIUrl() + "/races/race")
-      .setBody(json.toString())
-      .setHeader("Content-Type", "application/json")
-      .execute()
-      .toCompletableFuture()
-      .exceptionally((Throwable t) -> {
-        Bukkit.getLogger().log(Level.SEVERE, t.getMessage(), t);
-        return null;
-      })
-      .thenAccept(new HandleRequest((JsonElement response) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, runnable)));
   }
 
   private Race parseRace(JsonObject json) {

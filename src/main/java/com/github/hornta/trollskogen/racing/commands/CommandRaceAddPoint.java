@@ -3,6 +3,7 @@ package com.github.hornta.trollskogen.racing.commands;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.objects.RaceCheckpoint;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import se.hornta.carbon.ICommandHandler;
@@ -27,7 +28,13 @@ public class CommandRaceAddPoint implements ICommandHandler {
     }
 
     Player player = (Player)commandSender;
-    main.getRacing().addPoint(player.getLocation(), race, (RaceCheckpoint checkPoint) -> {
+
+    Location location = player.getLocation().clone();
+    location.setX(location.getBlockX());
+    location.setY(location.getBlockY());
+    location.setZ(location.getBlockZ());
+
+    main.getRacing().addPoint(location, race, (RaceCheckpoint checkPoint) -> {
       main.getMessageManager().setValue("race_name", race.getName());
       main.getMessageManager().setValue("position", checkPoint.getPosition());
       main.getMessageManager().sendMessage(player, "success_race_setpoint");
