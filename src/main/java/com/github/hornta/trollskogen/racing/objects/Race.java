@@ -3,29 +3,44 @@ package com.github.hornta.trollskogen.racing.objects;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.enums.RaceState;
 import com.github.hornta.trollskogen.racing.enums.RacingType;
+import com.github.hornta.trollskogen.racing.events.PlayerSessionFinishRaceEvent;
 import com.xxmicloxx.NoteBlockAPI.songplayer.RadioSongPlayer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.v1_13_R2.MinecraftServer;
 import org.bukkit.*;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.HorseJumpEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.scheduler.BukkitTask;
 
-import javax.xml.transform.Result;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Race implements Listener {
   private Main main;
@@ -39,35 +54,21 @@ public class Race implements Listener {
   private LocalDateTime createdAt;
   private RacingType type;
   private RaceState state = RaceState.IDLE;
-  private Set<Player> participants = new HashSet<>();
-  private Map<Player, RaceCheckpoint> participantNextCheckpoints = new HashMap<>();
-  private List<Integer> startTimerTasks = new ArrayList<>();
-  private Countdown countdownTask;
+  private List<BukkitTask> startTimerTasks = new ArrayList<>();
+  private RaceCountdown countdown = new RaceCountdown(this);
   private RadioSongPlayer songPlayerStart;
   private RadioSongPlayer songPlayerDuring;
 
-  // cache player data between race
-  private Map<Player, Float> playerWalkSpeeds = new HashMap<>();
-  private Map<Player, Integer> playerFoodLevels = new HashMap<>();
-  private Map<Player, ItemStack[]> playerInventories = new HashMap<>();
-  private Map<Player, Collection<PotionEffect>> playerPotionEffects = new HashMap<>();
-  private Map<Player, Double> playerHealth = new HashMap<>();
+  private int startTick;
+  private int numFinished;
 
-  private int raceStartTick;
-  private Map<Player, RaceResult> results = new HashMap<>();
+  private Set<Player> participants = new HashSet<>();
+  private Map<Player, RacePlayerSession> playerSessions = new HashMap<>();
 
-  private static final long FIVE_MINUTES = 10 * 20; //20L * 60 * 5;
-  private static final long THREE_MINUTES = 7 * 20; //20L * 60 * 3;
-  private static final long ONE_MINUTE = 4 * 20; // 20L * 60;
-  private static final long THIRTY_SECONDS = 3 * 20; //20L * 30;
-  public static final int REQUIRED_START_POINTS = 1; // 2
-  private static final int COUNTDOWN_IN_SECONDS = 10;
-  private static final int HALF_SECOND = 10;
-  private static final int ONE_SECOND = 20;
-  private static final int PREVENT_SPRINT_FOOD_LEVEL = 6;
-  private static final int MAX_FOOD_LEVEL = 20;
-  private static final float DEFAULT_WALK_SPEED = 0.2F;
-  private static final double MAX_HEALTH = 20;
+  private static final long FIVE_MINUTES = 20L * 60 * 5;
+  private static final long THREE_MINUTES = 20L * 60 * 3;
+  private static final long ONE_MINUTE = 20L * 60;
+  private static final long THIRTY_SECONDS = 20L * 30;
 
   public Race(
     Main main,
@@ -125,6 +126,18 @@ public class Race implements Listener {
     return null;
   }
 
+  public RaceCheckpoint getCheckpoint(Location location) {
+    for(RaceCheckpoint checkpoint : checkpoints) {
+      if(
+        checkpoint.getCenter().getBlockX() == location.getBlockX() &&
+        checkpoint.getCenter().getBlockY() == location.getBlockY() &&
+        checkpoint.getCenter().getBlockZ() == location.getBlockZ()) {
+        return checkpoint;
+      }
+    }
+    return null;
+  }
+
   public RaceStartPoint getStartPoint(int position) {
     for(RaceStartPoint startPoint : startPoints) {
       if(startPoint.getPosition() == position) {
@@ -148,9 +161,9 @@ public class Race implements Listener {
 
   public void setSpawn(Location spawn) {
     this.spawn = new Location(spawn.getWorld(),
-      Math.round(spawn.getBlock().getLocation().getX()),
-      Math.round(spawn.getBlock().getLocation().getY()),
-      Math.round(spawn.getBlock().getLocation().getZ()),
+      spawn.getBlockX(),
+      spawn.getBlockY(),
+      spawn.getBlockZ(),
       spawn.getYaw(),
       spawn.getPitch());
   }
@@ -195,7 +208,12 @@ public class Race implements Listener {
     return state;
   }
 
+  public Map<Player, RacePlayerSession> getPlayerSessions() {
+    return playerSessions;
+  }
+
   public void setState(RaceState state) {
+    log("Change state from " + this.state + " to " + state);
     this.state = state;
   }
 
@@ -223,107 +241,92 @@ public class Race implements Listener {
     addStartTimerTask(Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> Bukkit.getServer().spigot().broadcast(getTimeLeftMessage("3 minuter")), FIVE_MINUTES - THREE_MINUTES));
     addStartTimerTask(Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> Bukkit.getServer().spigot().broadcast(getTimeLeftMessage("1 minut")), FIVE_MINUTES - ONE_MINUTE));
     addStartTimerTask(Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> Bukkit.getServer().spigot().broadcast(getTimeLeftMessage("30 sekunder")), FIVE_MINUTES - THIRTY_SECONDS));
-    addStartTimerTask(Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> {
-      if(participants.size() < REQUIRED_START_POINTS) {
-        main.getMessageManager().broadcast("race_canceled");
-        stop();
-        return;
-      }
+    addStartTimerTask(Bukkit.getScheduler().scheduleSyncDelayedTask(main, this::actualStart, FIVE_MINUTES));
+  }
 
-      // check if players are online before countdown starts
-      for(Player player1 : participants) {
-        if(!player1.isOnline()) {
-          participants.remove(player1);
-          for(Player player2 : participants) {
-            main.getMessageManager().setValue("player_name", player1.getName());
-            main.getMessageManager().sendMessage(player2, "race_start_noshow_disqualified");
-          }
+  private void actualStart() {
+    if(playerSessions.size() < Main.getTrollskogenConfig().getRequiredStartPoints()) {
+      main.getMessageManager().broadcast("race_canceled");
+      stop();
+      return;
+    }
+
+    // check if players are online before countdown starts
+    for(RacePlayerSession session : playerSessions.values()) {
+      if(!session.getPlayer().isOnline()) {
+        participants.remove(session.getPlayer());
+        playerSessions.remove(session.getPlayer());
+        for(RacePlayerSession session1 : playerSessions.values()) {
+          main.getMessageManager().setValue("player_name", session.getPlayer().getName());
+          main.getMessageManager().sendMessage(session1.getPlayer(), "race_start_noshow_disqualified");
         }
       }
+    }
 
-      if(participants.isEmpty()) {
-        main.getMessageManager().broadcast("race_canceled");
-        stop();
-        return;
+    if(playerSessions.isEmpty()) {
+      main.getMessageManager().broadcast("race_canceled");
+      stop();
+      return;
+    }
+
+    setState(RaceState.COUNTDOWN);
+
+    List<RacePlayerSession> shuffledSessions = new ArrayList<>(playerSessions.values());
+    Collections.shuffle(shuffledSessions);
+
+    for(RaceCheckpoint checkpoint : checkpoints) {
+      checkpoint.startTask(main);
+    }
+
+    int startPointIndex = 0;
+    for(RacePlayerSession session : shuffledSessions) {
+      session.setStartPoint(startPoints.get(startPointIndex));
+      session.setBossBar(Bukkit.createBossBar(name, BarColor.BLUE, BarStyle.SOLID));
+      session.startCooldown();
+      session.tryIncrementCheckpoint(this);
+      songPlayerStart.addPlayer(session.getPlayer());
+      startPointIndex += 1;
+    }
+
+    countdown.start(() -> {
+      setState(RaceState.STARTED);
+      for(RacePlayerSession session : playerSessions.values()) {
+        session.startRace();
+        songPlayerDuring.addPlayer(session.getPlayer());
       }
+      songPlayerDuring.setTick((short)0);
+      songPlayerDuring.setPlaying(true);
+      startTick = MinecraftServer.currentTick;
+    });
+  }
 
-      setState(RaceState.COUNTDOWN);
+  public void skipToCountdown() {
+    for(BukkitTask task : startTimerTasks) {
+      task.cancel();
+    }
 
-      List<Player> listParticipants = new ArrayList<>(participants);
-      Collections.shuffle(listParticipants);
-
-      for(RaceCheckpoint checkpoint : checkpoints) {
-        checkpoint.startTask(main);
-      }
-
-      for(int i = 0; i < listParticipants.size(); ++i) {
-        Player participant = listParticipants.get(i);
-
-        // prevent taking damage and playing fall damage particles when teleporting during falling
-        participant.setFallDistance(0);
-
-        participant.teleport(startPoints.get(i).getLocation());
-
-        playerWalkSpeeds.put(participant, participant.getWalkSpeed());
-        participant.setWalkSpeed(0);
-
-        playerPotionEffects.put(participant, new ArrayList<>(participant.getActivePotionEffects()));
-        for(PotionEffect effect : participant.getActivePotionEffects()) {
-          participant.removePotionEffect(effect.getType());
-        }
-        participant.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, COUNTDOWN_IN_SECONDS * MinecraftServer.TPS, 128));
-
-        playerFoodLevels.put(participant, participant.getFoodLevel());
-        participant.setFoodLevel(PREVENT_SPRINT_FOOD_LEVEL);
-
-        playerInventories.put(participant, player.getInventory().getContents());
-        participant.getInventory().clear();
-
-        playerHealth.put(participant, player.getHealth());
-        participant.setHealth(MAX_HEALTH);
-
-        participant.closeInventory();
-
-        participant.playSound(participant.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 2);
-        songPlayerStart.addPlayer(participant);
-
-        tryIncrementCheckpoint(participant);
-      }
-      this.countdownTask = new Countdown(() -> {
-        setState(RaceState.STARTED);
-        for(int i = 0; i < listParticipants.size(); ++i) {
-          Player participant = listParticipants.get(i);
-          participant.setWalkSpeed(DEFAULT_WALK_SPEED);
-          participant.setFoodLevel(MAX_FOOD_LEVEL);
-          participant.removePotionEffect(PotionEffectType.JUMP);
-          songPlayerDuring.addPlayer(participant);
-        }
-        songPlayerDuring.setTick((short)0);
-        songPlayerDuring.setPlaying(true);
-        raceStartTick = MinecraftServer.currentTick;
-      });
-      this.countdownTask.runTaskTimer(main, HALF_SECOND, ONE_SECOND);
-    }, FIVE_MINUTES));
+    if(state != RaceState.COUNTDOWN) {
+      actualStart();
+    }
   }
 
   public void stop() {
-    if(this.countdownTask != null) {
-      this.countdownTask.cancel();
-    }
+    log("Stopped");
+    countdown.stop();
 
-    for(int taskId : startTimerTasks) {
-      Bukkit.getScheduler().cancelTask(taskId);
+    for(BukkitTask task : startTimerTasks) {
+      task.cancel();
     }
+    startTimerTasks.clear();
 
-    for(Player player : participants) {
-      restorePlayer(player);
+    for (RacePlayerSession session : playerSessions.values()) {
+      session.restore();
+      songPlayerDuring.removePlayer(session.getPlayer());
     }
+    songPlayerDuring.setPlaying(false);
 
-    playerWalkSpeeds.clear();
-    playerPotionEffects.clear();
-    playerFoodLevels.clear();
-    playerInventories.clear();
-    playerHealth.clear();
+    participants.clear();
+    playerSessions.clear();
 
     if(state != RaceState.PREPARING) {
       for (RaceCheckpoint checkpoint : checkpoints) {
@@ -331,24 +334,10 @@ public class Race implements Listener {
       }
     }
 
-    songPlayerDuring.setPlaying(false);
-    HandlerList.unregisterAll(this);
-    state = RaceState.IDLE;
-  }
+    numFinished = 0;
 
-  private void restorePlayer(Player player) {
-    player.setWalkSpeed(playerWalkSpeeds.get(player));
-    player.addPotionEffects(playerPotionEffects.get(player));
-    player.setFoodLevel(playerFoodLevels.get(player));
-    player.getInventory().setContents(playerInventories.get(player));
-    player.setHealth(playerHealth.get(player));
-    songPlayerDuring.removePlayer(player);
-    participants.remove(player);
-    participantNextCheckpoints.remove(player);
-    results.remove(player);
-    for (RaceCheckpoint checkpoint : checkpoints) {
-      checkpoint.removePlayer(player);
-    }
+    HandlerList.unregisterAll(this);
+    setState(RaceState.IDLE);
   }
 
   public boolean isFull() {
@@ -361,10 +350,11 @@ public class Race implements Listener {
 
   public void participate(Player player) {
     participants.add(player);
+    playerSessions.put(player, new RacePlayerSession(this, player));
   }
 
   public void addStartTimerTask(int id) {
-    startTimerTasks.add(id);
+    startTimerTasks.add(Bukkit.getScheduler().getPendingTasks().stream().filter(t -> t.getTaskId() == id).findFirst().get());
   }
 
   @EventHandler
@@ -379,8 +369,29 @@ public class Race implements Listener {
 
   @EventHandler
   void onPlayerMove(PlayerMoveEvent event) {
-    if(isParticipating(event.getPlayer())) {
-      tryIncrementCheckpoint(event.getPlayer());
+    if(isParticipating(event.getPlayer()) && (state == RaceState.COUNTDOWN || state == RaceState.STARTED)) {
+      playerSessions.get(event.getPlayer()).tryIncrementCheckpoint(this);
+
+      if(
+        Double.compare(event.getFrom().getX(), event.getTo().getX()) == 0 &&
+        Double.compare(event.getFrom().getY(), event.getTo().getY()) == 0 &&
+        Double.compare(event.getFrom().getZ(), event.getTo().getZ()) == 0
+      ) {
+        return;
+      }
+
+      // prevent player from moving after being teleported to the start point
+      // will happen when player for example is holding walk forward button while being teleported
+      if(state == RaceState.COUNTDOWN) {
+        event.setTo(new Location(
+          event.getFrom().getWorld(),
+          event.getFrom().getX(),
+          event.getFrom().getY(),
+          event.getFrom().getZ(),
+          event.getTo().getYaw(),
+          event.getTo().getPitch()
+        ));
+      }
     }
   }
 
@@ -400,75 +411,108 @@ public class Race implements Listener {
 
   @EventHandler
   void onPlayerQuit(PlayerQuitEvent event) {
-    if(isParticipating(event.getPlayer()) && (state == RaceState.COUNTDOWN || state == RaceState.STARTED)) {
-      restorePlayer(event.getPlayer());
-      for(Player player : participants) {
-        main.getMessageManager().setValue("player_name", event.getPlayer().getName());
-        main.getMessageManager().sendMessage(player, "race_start_quit_disqualified");
+    Player player = event.getPlayer();
+    if(isParticipating(player) && (state == RaceState.COUNTDOWN || state == RaceState.STARTED)) {
+      playerSessions.get(player).restore();
+      playerSessions.remove(player);
+      participants.remove(player);
+      for(Player player1 : participants) {
+        main.getMessageManager().setValue("player_name", player.getName());
+        main.getMessageManager().sendMessage(player1, "race_start_quit_disqualified");
       }
 
-      if(participants.isEmpty()) {
+      if(playerSessions.isEmpty()) {
         stop();
       }
     }
   }
 
-  private void tryIncrementCheckpoint(Player player) {
-    if(!participantNextCheckpoints.containsKey(player)) {
-      participantNextCheckpoints.put(player, checkpoints.get(0));
-      checkpoints.get(0).addPlayer(player);
-    } else {
-      RaceCheckpoint checkpoint = participantNextCheckpoints.get(player);
-      if(checkpoint.isInside(player)) {
-        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-        checkpoint.removePlayer(player);
-        int checkpointIndex = checkpoints.indexOf(checkpoint);
-        if(checkpointIndex == checkpoints.size() - 1) {
-          RaceResult result = new RaceResult(this, player, results.size() + 1, MinecraftServer.currentTick - raceStartTick);
-          results.put(player, result);
-          if(results.size() == participants.size()) {
-            handleComplete();
-            stop();
-          }
-        } else {
-          participantNextCheckpoints.put(player, checkpoints.get(checkpointIndex + 1));
-          checkpoints.get(checkpointIndex + 1).addPlayer(player);
+  @EventHandler
+  void onPlayerDamage(EntityDamageEvent event) {
+    if(event.getEntity() instanceof Player && isParticipating((Player) event.getEntity()) && event.getFinalDamage() >= ((Player) event.getEntity()).getHealth()) {
+      playerSessions.get(event.getEntity()).respawnSafely(event);
+    }
+  }
+
+  @EventHandler
+  void onVehicleEnter(VehicleEnterEvent event) {
+    if(event.getEntered() instanceof Player && isParticipating((Player) event.getEntered())) {
+      RacePlayerSession session = playerSessions.get(event.getEntered());
+
+      // if player is already mounted we need to cancel a new attempt to mount
+      if(!session.isAllowedToEnterVehicle()) {
+        event.setCancelled(true);
+        log("Deny enter vehicle " + event.getVehicle().getEntityId());
+
+        // because the player attempted to mount another vehicle, they become automatically dismounted from their current vehicle
+        if(session.getVehicle() != event.getVehicle()) {
+          // remount them onto their real vehicle
+          Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), () -> {
+            session.enterVehicle();
+            log("Reenter into vehicle " + session.getVehicle().getEntityId());
+          });
         }
+
+        return;
       }
+
+      if(type == RacingType.PIG && event.getVehicle().getType() != EntityType.PIG) {
+        event.setCancelled(true);
+        log("Deny enter vehicle " + event.getVehicle().getEntityId());
+      }
+
+      if(type == RacingType.HORSE && event.getVehicle().getType() != EntityType.HORSE) {
+        event.setCancelled(true);
+        log("Deny enter vehicle " + event.getVehicle().getEntityId());
+      }
+    }
+  }
+
+  @EventHandler
+  void onVehicleExit(VehicleExitEvent event) {
+    if(
+      event.getExited() instanceof Player &&
+      isParticipating((Player) event.getExited()) &&
+      !playerSessions.get(event.getExited()).isAllowedToExitVehicle()
+    ) {
+      event.setCancelled(true);
+    }
+  }
+
+  @EventHandler
+  void onPlayerSessionFinishRace(PlayerSessionFinishRaceEvent event) {
+    numFinished += 1;
+    event.getSession().getResult().setPosition(numFinished);
+    event.getSession().getResult().setTime(MinecraftServer.currentTick - startTick);
+
+    if(numFinished == playerSessions.size()) {
+      handleComplete();
+      stop();
+    }
+  }
+
+  @EventHandler
+  void onPlayerDropItem(PlayerDropItemEvent event) {
+    if(isParticipating(event.getPlayer()) && event.getItemDrop().getItemStack().getType() == Material.CARROT_ON_A_STICK) {
+      event.setCancelled(true);
+    }
+  }
+
+  @EventHandler
+  void onPlayerItemDamageEvent(PlayerItemDamageEvent event) {
+    if(isParticipating(event.getPlayer()) && type == RacingType.PIG && event.getItem().getType() == Material.CARROT_ON_A_STICK) {
+      event.setCancelled(true);
     }
   }
 
   private void handleComplete() {
-    for(RaceResult result : results.values()) {
-      if(result.getPosition() == 1) {
-        main.getMessageManager().setValue("player_name", result.getPlayer().getName());
-        main.getMessageManager().setValue("race_name", result.getRace().getName());
-        main.getMessageManager().setValue("time", result.getTime() / 20);
+    for(RacePlayerSession session : playerSessions.values()) {
+      if(session.getResult().getPosition() == 1) {
+        main.getMessageManager().setValue("player_name", session.getPlayer().getName());
+        main.getMessageManager().setValue("race_name", name);
+        main.getMessageManager().setValue("time", session.getResult().getTime() / 20);
         main.getMessageManager().broadcast("race_win");
         break;
-      }
-    }
-  }
-
-  private class Countdown extends BukkitRunnable {
-    private int countdown = COUNTDOWN_IN_SECONDS;
-    private Runnable runnable;
-
-    Countdown(Runnable runnable) {
-      this.runnable = runnable;
-    }
-
-    @Override
-    public void run() {
-      if(countdown == 0) {
-        cancel();
-        runnable.run();
-        return;
-      }
-
-      for(Player participant : participants) {
-        participant.sendTitle(String.valueOf(countdown), "sekunder innan racet börjar", 0, 21, 0);
-        countdown -= 1;
       }
     }
   }
@@ -483,5 +527,9 @@ public class Race implements Listener {
       .color(ChatColor.DARK_GRAY)
       .append(" för att delta.")
       .color(ChatColor.YELLOW).create();
+  }
+
+  void log(String message) {
+    Bukkit.getLogger().info("§a[Race " + name + "] " + message);
   }
 }

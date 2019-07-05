@@ -13,6 +13,7 @@ import com.github.hornta.trollskogen.racing.commands.validators.RacingTypeValida
 import com.github.hornta.trollskogen.racing.commands.validators.StartPointExistValidator;
 import com.github.hornta.trollskogen.racing.enums.RacingType;
 import com.github.hornta.trollskogen.racing.events.*;
+import com.github.hornta.trollskogen.racing.mcmmo.McMMOLoader;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.objects.RaceCheckpoint;
 import com.github.hornta.trollskogen.racing.objects.RaceStartPoint;
@@ -25,11 +26,11 @@ import org.asynchttpclient.RequestBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -40,6 +41,7 @@ import java.util.regex.Pattern;
 
 public class Racing implements Listener {
   private Main main;
+  private McMMOLoader mcMMOLoader;
   private Map<String, Race> races = new ConcurrentHashMap<>();
   private static final Pattern raceNamePattern = Pattern.compile("^\\S{6,20}$");
   private static final Vector HologramOffset = new Vector(0, 1, 0);
@@ -49,19 +51,9 @@ public class Racing implements Listener {
   public Racing(Main main) {
     this.main = main;
 
-    Bukkit.getLogger().info("Loading races...");
-    prepareRequest(Method.GET, "/races")
-      .execute()
-      .toCompletableFuture()
-      .thenAccept(new HandleRequest((JsonElement json) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, () -> {
-        JsonArray jsonRaces = json.getAsJsonObject().get("races").getAsJsonArray();
-        for(JsonElement jsonRace : jsonRaces) {
-          Race race = parseRace(jsonRace.getAsJsonObject());
-          races.put(race.getName(), race);
-          Bukkit.getPluginManager().callEvent(new AddRaceEvent(race));
-        }
-        Bukkit.getLogger().info("Finished loading " + races.size() + " races.");
-      })));
+    mcMMOLoader = new McMMOLoader();
+
+    fetchRaces();
   }
 
   public void shutdown() {
@@ -167,6 +159,33 @@ public class Racing implements Listener {
     }
   }
 
+  @EventHandler
+  void onChangeRaceName(ChangeRaceNameEvent event) {
+    races.remove(event.getOldName());
+    races.put(event.getRace().getName(), event.getRace());
+  }
+
+  public void fetchRaces() {
+    for(Race race : races.values()) {
+      races.remove(race.getName());
+      Bukkit.getPluginManager().callEvent(new DeleteRaceEvent(race));
+    }
+
+    Bukkit.getLogger().info("Loading races...");
+    prepareRequest(Method.GET, "/races")
+      .execute()
+      .toCompletableFuture()
+      .thenAccept(new HandleRequest((JsonElement json) -> Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, () -> {
+        JsonArray jsonRaces = json.getAsJsonObject().get("races").getAsJsonArray();
+        for(JsonElement jsonRace : jsonRaces) {
+          Race race = parseRace(jsonRace.getAsJsonObject());
+          races.put(race.getName(), race);
+          Bukkit.getPluginManager().callEvent(new AddRaceEvent(race));
+        }
+        Bukkit.getLogger().info("Finished loading " + races.size() + " races.");
+      })));
+  }
+
   public void createRace(Location location, String name, Consumer<Race> callback) {
     JsonObject json = new JsonObject();
     json.addProperty("name", name);
@@ -219,12 +238,13 @@ public class Racing implements Listener {
     json.addProperty("name", race.getName());
     json.addProperty("is_editing", race.isEditing());
     json.addProperty("is_enabled", race.isEnabled());
-    json.addProperty("spawn_x", Math.round(race.getSpawn().getX()));
-    json.addProperty("spawn_y", Math.round(race.getSpawn().getX()));
-    json.addProperty("spawn_z", Math.round(race.getSpawn().getX()));
+    json.addProperty("spawn_x", race.getSpawn().getX());
+    json.addProperty("spawn_y", race.getSpawn().getY());
+    json.addProperty("spawn_z", race.getSpawn().getZ());
     json.addProperty("spawn_pitch", race.getSpawn().getPitch());
     json.addProperty("spawn_yaw", race.getSpawn().getYaw());
     json.addProperty("spawn_world", race.getSpawn().getWorld().getName());
+    json.addProperty("type", race.getType().toString().toLowerCase(Locale.ENGLISH));
 
     prepareRequest(Method.PUT, "/races/race", json)
       .execute()
@@ -347,8 +367,8 @@ public class Racing implements Listener {
     }
 
     requestBuilder.setMethod(method.name());
-    requestBuilder.setUrl(main.getTrollskogenConfig().getAPIUrl() + url);
-    return main.getAsyncHttpClient().prepareRequest(requestBuilder);
+    requestBuilder.setUrl(Main.getTrollskogenConfig().getAPIUrl() + url);
+    return Main.getAsyncHttpClient().prepareRequest(requestBuilder);
   }
 
   private BoundRequestBuilder prepareRequest(Method method, String url) {
@@ -360,7 +380,7 @@ public class Racing implements Listener {
     POST,
     PUT,
     DELETE
-  };
+  }
 
   public Race getRace(String name) {
     return races.get(name);
@@ -374,20 +394,29 @@ public class Racing implements Listener {
     return races.containsKey(name);
   }
 
+  public Race getParticipatingRace(Player player) {
+    for(Race race : races.values()) {
+      if(race.isParticipating(player)) {
+        return race;
+      }
+    }
+    return null;
+  }
+
   public static void setupCommands(Main main) {
     RaceExistValidator raceShouldExist = new RaceExistValidator(main, true);
     RaceExistValidator raceShouldNotExist = new RaceExistValidator(main, false);
-    RaceCompleter raceCompleter = new RaceCompleter(main.getRacing());
+    RaceCompleter raceCompleter = new RaceCompleter(Main.getRacing());
     RegexValidator raceNameValidator = new RegexValidator(main, raceNamePattern, "race_name_format");
     PointExistValidator pointShouldExist = new PointExistValidator(main, true);
-    PointCompleter pointCompleter = new PointCompleter(main.getRacing());
+    PointCompleter pointCompleter = new PointCompleter(Main.getRacing());
     StartPointExistValidator startPointShouldExist = new StartPointExistValidator(main, true);
-    StartPointCompleter startPointCompleter = new StartPointCompleter(main.getRacing());
+    StartPointCompleter startPointCompleter = new StartPointCompleter(Main.getRacing());
 
     main.getCarbon()
-      .addCommand("race", "create")
+      .addCommand("race create")
       .withHandler(new CommandCreateRace(main))
-      .setHelpText("/race create <race>")
+      .addHelpText("/race create <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldNotExist)
       .validateArgument(0, raceNameValidator)
@@ -395,24 +424,24 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "delete")
+      .addCommand("race delete")
       .withHandler(new CommandDeleteRace(main))
-      .setHelpText("/race delete <race>")
+      .addHelpText("/race delete <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.delete");
 
     main.getCarbon()
-      .addCommand("race", "list")
+      .addCommand("race list")
       .withHandler(new CommandRaces(main))
-      .setHelpText("/race list")
+      .addHelpText("/race list")
       .requiresPermission("ts.race.races");
 
     main.getCarbon()
-      .addCommand("race", "addpoint")
+      .addCommand("race addpoint")
       .withHandler(new CommandRaceAddPoint(main))
-      .setHelpText("/race addpoint <race>")
+      .addHelpText("/race addpoint <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -420,9 +449,9 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "delpoint")
+      .addCommand("race delpoint")
       .withHandler(new CommandRaceDelPoint(main))
-      .setHelpText("/race delpoint <race> <point>")
+      .addHelpText("/race delpoint <race> <point>")
       .setNumberOfArguments(2)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -431,9 +460,9 @@ public class Racing implements Listener {
       .requiresPermission("ts.race.delpoint");
 
     main.getCarbon()
-      .addCommand("race", "tppoint")
+      .addCommand("race tppoint")
       .withHandler(new CommandRaceTeleportPoint(main))
-      .setHelpText("/race tppoint <race> <point>")
+      .addHelpText("/race tppoint <race> <point>")
       .setNumberOfArguments(2)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -443,9 +472,9 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "spawn")
+      .addCommand("race spawn")
       .withHandler(new CommandRaceSpawn(main))
-      .setHelpText("/race spawn <race>")
+      .addHelpText("/race spawn <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -453,9 +482,9 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "setspawn")
+      .addCommand("race setspawn")
       .withHandler(new CommandRaceSetSpawn(main))
-      .setHelpText("/race setspawn <race>")
+      .addHelpText("/race setspawn <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -463,54 +492,55 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "disable")
+      .addCommand("race disable")
       .withHandler(new CommandDisableRace(main))
-      .setHelpText("/race disable <race>")
+      .addHelpText("/race disable <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.disable");
 
     main.getCarbon()
-      .addCommand("race", "enable")
+      .addCommand("race enable")
       .withHandler(new CommandEnableRace(main))
-      .setHelpText("/race enable <race>")
+      .addHelpText("/race enable <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.enable");
 
     main.getCarbon()
-      .addCommand("race", "setname")
+      .addCommand("race setname")
       .withHandler(new CommandSetRaceName(main))
-      .setHelpText("/race setname <race> <name>")
+      .addHelpText("/race setname <race> <name>")
       .setNumberOfArguments(2)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
+      .validateArgument(1, raceNameValidator)
       .requiresPermission("ts.race.setname");
 
     main.getCarbon()
-      .addCommand("race", "startedit")
+      .addCommand("race startedit")
       .withHandler(new CommandStartEditRace(main))
-      .setHelpText("/race startedit <race>")
+      .addHelpText("/race startedit <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.startedit");
 
     main.getCarbon()
-      .addCommand("race", "stopedit")
+      .addCommand("race stopedit")
       .withHandler(new CommandStopEditRace(main))
-      .setHelpText("/race stopedit <race>")
+      .addHelpText("/race stopedit <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.stopedit");
 
     main.getCarbon()
-      .addCommand("race", "addstart")
+      .addCommand("race addstart")
       .withHandler(new CommandAddStart(main))
-      .setHelpText("/race addstart <race>")
+      .addHelpText("/race addstart <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -518,9 +548,9 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "delstart")
+      .addCommand("race delstart")
       .withHandler(new CommandDelStart(main))
-      .setHelpText("/race delstart <race> <position>")
+      .addHelpText("/race delstart <race> <position>")
       .setNumberOfArguments(2)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -529,9 +559,9 @@ public class Racing implements Listener {
       .requiresPermission("ts.race.delstart");
 
     main.getCarbon()
-      .addCommand("race", "tpstart")
+      .addCommand("race tpstart")
       .withHandler(new CommandRaceTeleportStart(main))
-      .setHelpText("/race tpstart <race> <position>")
+      .addHelpText("/race tpstart <race> <position>")
       .setNumberOfArguments(2)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -541,9 +571,9 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "settype")
+      .addCommand("race settype")
       .withHandler(new CommandSetType(main))
-      .setHelpText("/race settype <race> <type>")
+      .addHelpText("/race settype <race> <type>")
       .setNumberOfArguments(2)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -552,9 +582,9 @@ public class Racing implements Listener {
       .requiresPermission("ts.race.settype");
 
     main.getCarbon()
-      .addCommand("race", "start")
+      .addCommand("race start")
       .withHandler(new CommandStartRace(main))
-      .setHelpText("/race start <race>")
+      .addHelpText("/race start <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -562,9 +592,9 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "join")
+      .addCommand("race join")
       .withHandler(new CommandJoinRace(main))
-      .setHelpText("/race join <race>")
+      .addHelpText("/race join <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
@@ -572,13 +602,22 @@ public class Racing implements Listener {
       .preventConsoleCommandSender();
 
     main.getCarbon()
-      .addCommand("race", "stop")
+      .addCommand("race stop")
       .withHandler(new CommandStopRace(main))
-      .setHelpText("/race stop <race>")
+      .addHelpText("/race stop <race>")
       .setNumberOfArguments(1)
       .validateArgument(0, raceShouldExist)
       .setTabComplete(0, raceCompleter)
       .requiresPermission("ts.race.stop");
+
+    main.getCarbon()
+      .addCommand("race skipwait")
+      .withHandler(new CommandSkipWait(main))
+      .addHelpText("/race skipwait <race>")
+      .setNumberOfArguments(1)
+      .validateArgument(0, raceShouldExist)
+      .setTabComplete(0, raceCompleter)
+      .requiresPermission("ts.race.skipwait");
   }
 
   private Race parseRace(JsonObject json) {

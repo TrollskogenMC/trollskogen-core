@@ -8,7 +8,7 @@ import com.google.gson.JsonElement;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.HashMap;
 

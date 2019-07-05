@@ -1,11 +1,10 @@
 package com.github.hornta.trollskogen.effects;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
-import com.github.hornta.trollskogen.effects.ParticleEffect;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
-public class EffectValidator extends ValidationHandler {
+public class EffectValidator implements ValidationHandler {
   private Main main;
 
   public EffectValidator(Main main) {
@@ -18,12 +17,8 @@ public class EffectValidator extends ValidationHandler {
   }
 
   @Override
-  public void setMessageValues(CommandSender sender, String[] arguments) {
+  public void whenInvalid(CommandSender sender, String[] arguments) {
     main.getMessageManager().setValue("effect_id", arguments[0]);
-  }
-
-  @Override
-  public String getErrorMessage(CommandSender commandSender, String[] args) {
-    return "effect_not_found";
+    main.getMessageManager().sendMessage(sender, "effect_not_found");
   }
 }

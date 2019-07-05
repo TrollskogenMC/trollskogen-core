@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.events.EditingRaceEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandStopEditRace implements ICommandHandler {
   private Main main;
@@ -17,13 +17,13 @@ public class CommandStopEditRace implements ICommandHandler {
   public void handle(CommandSender commandSender, String[] args) {
     Race race = main.getRacing().getRace(args[0]);
     if(!race.isEditing()) {
-      main.getMessageManager().sendMessage(commandSender, "stop_edit_already_editing");
+      main.getMessageManager().sendMessage(commandSender, "stop_edit_already_stopped");
       return;
     }
 
     race.setEditing(false);
 
-    main.getRacing().updateRace(race,() -> {
+    main.getRacing().updateRace(race, () -> {
       Bukkit.getPluginManager().callEvent(new EditingRaceEvent(race, false));
       main.getMessageManager().sendMessage(commandSender, "stop_edit_success");
     });

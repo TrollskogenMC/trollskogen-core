@@ -1,12 +1,10 @@
 package com.github.hornta.trollskogen;
 
+import com.github.hornta.trollskogen.messagemanager.Config;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import se.hornta.carbon.Config;
 
 import java.util.*;
 
@@ -17,6 +15,7 @@ public class TrollskogenConfig {
   private Map<String, Integer> homePermissions = Collections.emptyMap();
   private List<String> allowedMaintenance;
   private String APIUrl;
+  private int requiredStartPoints;
 
   TrollskogenConfig(Main main) {
     this.file = new Config(main, "config.yml");
@@ -43,6 +42,7 @@ public class TrollskogenConfig {
 
     allowedMaintenance = file.getConfig().getStringList("maintenance");
     APIUrl = file.getConfig().getString("api_url");
+    requiredStartPoints = file.getConfig().getInt("racing_required_start_points");
   }
 
   public void reload() {
@@ -93,5 +93,9 @@ public class TrollskogenConfig {
 
   public String getAPIUrl() {
     return APIUrl;
+  }
+
+  public int getRequiredStartPoints() {
+    return requiredStartPoints;
   }
 }

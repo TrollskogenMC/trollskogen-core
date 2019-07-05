@@ -4,9 +4,7 @@ import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
-
-import java.util.HashMap;
+import com.github.hornta.ICommandHandler;
 
 public class CommandCreateRace implements ICommandHandler {
   private Main main;

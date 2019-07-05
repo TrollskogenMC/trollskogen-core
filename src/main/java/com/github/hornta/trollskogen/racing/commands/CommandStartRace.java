@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.enums.RaceState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandStartRace implements ICommandHandler {
   private Main main;
@@ -16,7 +16,7 @@ public class CommandStartRace implements ICommandHandler {
 
   @Override
   public void handle(CommandSender commandSender, String[] args) {
-    Race race = main.getRacing().getRace(args[0]);
+    Race race = Main.getRacing().getRace(args[0]);
 
     if(!race.isEnabled()) {
       main.getMessageManager().sendMessage(commandSender, "race_is_disabled");
@@ -28,7 +28,7 @@ public class CommandStartRace implements ICommandHandler {
       return;
     }
 
-    if(race.getStartPoints().size() < Race.REQUIRED_START_POINTS) {
+    if(race.getStartPoints().size() < Main.getTrollskogenConfig().getRequiredStartPoints()) {
       main.getMessageManager().sendMessage(commandSender, "error_start_race_start_points");
       return;
     }

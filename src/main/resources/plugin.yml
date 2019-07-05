@@ -2,7 +2,7 @@ name: Trollskogen
 version: ${project.version}
 main: com.github.hornta.trollskogen.Main
 api-version: 1.13
-depend: [HolographicDisplays]
+softdepend: [RacingmcMMO]
 commands:
   ts:
   hat:
@@ -22,3 +22,4 @@ commands:
   race:
   playsong:
   stopsong:
+  skipwait:

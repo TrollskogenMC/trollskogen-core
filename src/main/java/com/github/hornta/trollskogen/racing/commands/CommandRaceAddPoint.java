@@ -6,7 +6,7 @@ import com.github.hornta.trollskogen.racing.objects.RaceCheckpoint;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +28,11 @@ public class CommandRaceAddPoint implements ICommandHandler {
     }
 
     Player player = (Player)commandSender;
+
+    if(race.getCheckpoint(player.getLocation()) != null) {
+      main.getMessageManager().sendMessage(commandSender, "error_add_checkpoint_occupied");
+      return;
+    }
 
     Location location = player.getLocation().clone();
     location.setX(location.getBlockX());

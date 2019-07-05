@@ -3,7 +3,7 @@ package com.github.hornta.trollskogen.commands;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandReload implements ICommandHandler {
   Main main;
@@ -18,6 +18,7 @@ public class CommandReload implements ICommandHandler {
     main.getAnnouncements().reload();
     main.getUserManager().load();
     main.getTrollskogenConfig().reload();
+    main.getRacing().fetchRaces();
     main.getMessageManager().sendMessage(commandSender, "config-reloaded-success");
   }
 }

@@ -1,12 +1,12 @@
 package com.github.hornta.trollskogen.validators;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
 import java.util.regex.Pattern;
 
-public class RegexValidator extends ValidationHandler {
+public class RegexValidator implements ValidationHandler {
   private Main main;
   private Pattern pattern;
   private String errorMessage;
@@ -23,12 +23,7 @@ public class RegexValidator extends ValidationHandler {
   }
 
   @Override
-  public void setMessageValues(CommandSender sender, String[] args) {
-
-  }
-
-  @Override
-  public String getErrorMessage(CommandSender commandSender, String[] args) {
-    return errorMessage;
+  public void whenInvalid(CommandSender commandSender, String[] args) {
+    main.getMessageManager().sendMessage(commandSender, errorMessage);
   }
 }

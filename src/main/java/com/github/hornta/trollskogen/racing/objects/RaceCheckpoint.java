@@ -3,7 +3,9 @@ package com.github.hornta.trollskogen.racing.objects;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.effects.ParticleEffect;
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -65,7 +67,7 @@ public class RaceCheckpoint implements Comparable<RaceCheckpoint> {
   }
 
   public boolean isInside(Entity entity) {
-    return entity.getLocation().toVector().subtract(vector).lengthSquared() <= radius * radius;
+    return entity.getLocation().toVector().isInSphere(vector, radius);
   }
 
   public void addPlayer(Player player) {
@@ -95,12 +97,11 @@ public class RaceCheckpoint implements Comparable<RaceCheckpoint> {
 
   public static class ParticleTask extends BukkitRunnable {
     private final ParticleEffect particleEffect = ParticleEffect.getParticleEffect("REDSTONE");
-    private int step;
-    // 2 degrees
-    private static final double ANGLE_INCREMENT = 0.034906585;
-    private static final int STEP_INCREMENT = 2;
+    private double t;
+
+    private static final double ANGLE_INCREMENT = Math.toRadians(4);
     private static final int NUMBER_ORBS = 2;
-    private static final double ANGLE_INCREMENT_ORB = (2 * Math.PI) / NUMBER_ORBS;
+    private static final double ANGLE_OFFSET = (2 * Math.PI) / NUMBER_ORBS;
     private RaceCheckpoint checkpoint;
     private boolean isEditing;
 
@@ -112,20 +113,37 @@ public class RaceCheckpoint implements Comparable<RaceCheckpoint> {
     @Override
     public void run() {
       List<Player> players = checkpoint.getPlayers();
-      for(int i = 0; i < NUMBER_ORBS; ++i) {
-        double angle = step * (ANGLE_INCREMENT + i * ANGLE_INCREMENT_ORB);
-        Vector v = new Vector();
-        v.setX(Math.cos(angle) * checkpoint.getRadius());
-        v.setZ(Math.sin(angle) * checkpoint.getRadius());
-        if(isEditing) {
-          particleEffect.displayColor(this.checkpoint.getCenter().add(v), 255, 0, 0, 0, 2);
-        } else {
-          for (Player player : players) {
-            particleEffect.displayColor(this.checkpoint.getCenter().add(v), player, 255, 0, 0, 0, 2);
+
+      boolean isInside = false;
+      if(isEditing) {
+        for(Player player : Bukkit.getOnlinePlayers()) {
+          if(checkpoint.isInside(player)) {
+            isInside = true;
+            break;
           }
         }
       }
-      this.step += STEP_INCREMENT;
+
+      Vector dir = checkpoint.getCenter().getDirection();
+
+      for(int i = 0; i < NUMBER_ORBS; ++i) {
+        double offset = i * ANGLE_OFFSET;
+        double angle = t + offset;
+
+        // rotate dir by 90 degrees CW on the y-axis
+        Vector p = new Vector(-dir.getZ(), dir.getY(), dir.getX());
+        Vector c = p.crossProduct(dir);
+        Vector v = c.rotateAroundAxis(dir, angle).normalize().multiply(checkpoint.getRadius());
+
+        if(isEditing) {
+          particleEffect.displayColor(checkpoint.getCenter().add(v), isInside ? 0 : 255, isInside ? 255 : 0, 0, 0, 2);
+        } else {
+          for (Player player : players) {
+            particleEffect.displayColor(checkpoint.getCenter().add(v), player, 255, 0, 0, 0, 2);
+          }
+        }
+      }
+      t += ANGLE_INCREMENT;
     }
   }
 }

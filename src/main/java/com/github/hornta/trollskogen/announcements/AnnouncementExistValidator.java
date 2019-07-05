@@ -1,10 +1,10 @@
 package com.github.hornta.trollskogen.announcements;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
-public class AnnouncementExistValidator extends ValidationHandler {
+public class AnnouncementExistValidator implements ValidationHandler {
   private Main main;
 
   public AnnouncementExistValidator(Main main) {
@@ -18,12 +18,8 @@ public class AnnouncementExistValidator extends ValidationHandler {
   }
 
   @Override
-  public void setMessageValues(CommandSender sender, String[] args) {
+  public void whenInvalid(CommandSender commandSender, String[] args) {
     main.getMessageManager().setValue("announcement_id", args[0]);
-  }
-
-  @Override
-  public String getErrorMessage(CommandSender commandSender, String[] args) {
-    return "announcement_not_found";
+    main.getMessageManager().sendMessage(commandSender, "announcement_not_found");
   }
 }

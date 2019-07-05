@@ -2,12 +2,13 @@ package com.github.hornta.trollskogen.racing.commands;
 
 import com.github.hornta.trollskogen.HandleRequest;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.racing.events.ChangeRaceNameEvent;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import com.google.gson.JsonElement;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.HashMap;
 
@@ -31,6 +32,7 @@ public class CommandSetRaceName implements ICommandHandler {
     race.setName(args[1]);
 
     main.getRacing().updateRace(race, () -> {
+      Bukkit.getPluginManager().callEvent(new ChangeRaceNameEvent(race, oldName));
       main.getMessageManager().setValue("old_name", oldName);
       main.getMessageManager().setValue("new_name", race.getName());
       main.getMessageManager().sendMessage(commandSender, "race_name_set");

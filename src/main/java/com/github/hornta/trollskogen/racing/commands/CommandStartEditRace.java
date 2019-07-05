@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.events.EditingRaceEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandStartEditRace implements ICommandHandler {
   private Main main;

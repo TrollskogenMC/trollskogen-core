@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.effects.ParticleEffect;
 import com.github.hornta.trollskogen.User;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandEffectUse implements ICommandHandler {
   private Main main;

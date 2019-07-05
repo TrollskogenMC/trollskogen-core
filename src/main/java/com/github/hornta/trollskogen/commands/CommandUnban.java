@@ -4,7 +4,7 @@ import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.logging.Level;
 

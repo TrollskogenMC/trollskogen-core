@@ -1,13 +1,11 @@
 package com.github.hornta.trollskogen.homes;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
-import java.util.List;
-
-public class HomeExistValidator extends ValidationHandler {
+public class HomeExistValidator implements ValidationHandler {
   private Main main;
 
   public HomeExistValidator(Main main) {
@@ -20,31 +18,16 @@ public class HomeExistValidator extends ValidationHandler {
     return user.getHome(args[0]) != null;
   }
 
-  public boolean testPlayerHome(CommandSender sender, String[] arguments) {
-    User user = main.getUser(arguments[0]);
-    return user.getHome(arguments[1]) != null;
-  }
-
   @Override
-  public String getErrorMessage(CommandSender commandSender, String[] arguments) {
-    if(arguments.length == 2) {
-      return "player_home_not_found";
-    }
+  public void whenInvalid(CommandSender commandSender, String[] args) {
+    String message = "home_not_found";
 
     if(main.getUser(commandSender).getHomes().isEmpty()) {
-      return "player_not_set_home";
+      message = "player_not_set_home";
     }
 
-    return "home_not_found";
-  }
+    main.getMessageManager().setValue("home_name", args[0]);
 
-  @Override
-  public void setMessageValues(CommandSender commandSender, String[] args) {
-    if(args.length == 2) {
-      main.getMessageManager().setValue("player_name", args[0]);
-      main.getMessageManager().setValue("home_name", args[1]);
-    } else {
-      main.getMessageManager().setValue("home_name", args[0]);
-    }
+    main.getMessageManager().sendMessage(commandSender, message);
   }
 }

@@ -1,21 +1,16 @@
 package com.github.hornta.trollskogen.racing.commands.validators;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
-public class RaceExistValidator extends ValidationHandler {
+public class RaceExistValidator implements ValidationHandler {
   private Main main;
   private boolean shouldExist;
 
   public RaceExistValidator(Main main, boolean shouldExist) {
     this.main = main;
     this.shouldExist = shouldExist;
-  }
-
-  @Override
-  public void setMessageValues(CommandSender commandSender, String[] arguments) {
-    main.getMessageManager().setValue("race_name", arguments[0]);
   }
 
   @Override
@@ -28,11 +23,14 @@ public class RaceExistValidator extends ValidationHandler {
   }
 
   @Override
-  public String getErrorMessage(CommandSender commandSender, String[] arguments) {
+  public void whenInvalid(CommandSender sender, String[] args) {
+    String message;
     if(this.shouldExist) {
-      return "race_not_found";
+      message = "race_not_found";
     } else {
-      return "race_already_exist";
+      message = "race_already_exist";
     }
+    main.getMessageManager().setValue("race_name", args[0]);
+    main.getMessageManager().sendMessage(sender,message);
   }
 }

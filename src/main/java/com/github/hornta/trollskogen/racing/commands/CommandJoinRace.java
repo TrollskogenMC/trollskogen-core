@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.enums.RaceState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandJoinRace implements ICommandHandler {
   private Main main;
@@ -22,15 +22,20 @@ public class CommandJoinRace implements ICommandHandler {
       return;
     }
 
-    if(race.isFull()) {
-      main.getMessageManager().sendMessage(commandSender, "error_join_race_full");
-      return;
-    }
-
     Player player = (Player)commandSender;
 
     if(race.isParticipating(player)) {
       main.getMessageManager().sendMessage(commandSender, "error_join_race_participating");
+      return;
+    }
+
+    if(Main.getRacing().getParticipatingRace(player) != null) {
+      main.getMessageManager().sendMessage(commandSender, "error_join_race_participating_other");
+      return;
+    }
+
+    if(race.isFull()) {
+      main.getMessageManager().sendMessage(commandSender, "error_join_race_full");
       return;
     }
 

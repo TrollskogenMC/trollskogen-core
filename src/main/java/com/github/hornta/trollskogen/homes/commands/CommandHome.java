@@ -6,7 +6,7 @@ import com.github.hornta.trollskogen.User;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandHome implements ICommandHandler {
   private Main main;

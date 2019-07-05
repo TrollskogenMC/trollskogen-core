@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.DateUtils;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;

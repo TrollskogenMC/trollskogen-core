@@ -3,7 +3,7 @@ package com.github.hornta.trollskogen.announcements.commands;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandAnnouncementRead implements ICommandHandler {
   private Main main;

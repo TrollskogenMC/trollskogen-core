@@ -12,7 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 import static org.asynchttpclient.Dsl.*;
 
 import java.util.logging.Level;

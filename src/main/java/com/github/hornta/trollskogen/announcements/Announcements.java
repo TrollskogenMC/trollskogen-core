@@ -2,13 +2,11 @@ package com.github.hornta.trollskogen.announcements;
 
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.announcements.commands.*;
+import com.github.hornta.trollskogen.messagemanager.Config;
 import com.github.hornta.trollskogen.validators.NumberInRangeValidator;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import se.hornta.carbon.Carbon;
-import se.hornta.carbon.Config;
-import se.hornta.carbon.MessageManager;
 
 import java.util.*;
 
@@ -141,56 +139,56 @@ public class Announcements {
     AnnouncementCompleter announcementCompleter = new AnnouncementCompleter(main);
 
     main.getCarbon()
-      .addCommand("announcement", "disable")
+      .addCommand("announcement disable")
       .withHandler(new CommandAnnouncementDisable(main))
       .setNumberOfArguments(0)
       .requiresPermission("ts.announcement.disable")
-      .setHelpText("/announcement disable");
+      .addHelpText("/announcement disable");
 
     main.getCarbon()
-      .addCommand("announcement", "set")
+      .addCommand("announcement set")
       .withHandler(new CommandAnnouncementSet(main))
       .setMinNumberOfArguments(2)
-      .setHelpText("/announcement set <id> <message>")
+      .addHelpText("/announcement set <id> <message>")
       .requiresPermission("ts.announcement.set")
       .setTabComplete(0, announcementCompleter);
 
     main.getCarbon()
-      .addCommand("announcement", "delete")
+      .addCommand("announcement delete")
       .withHandler(new CommandAnnouncementDelete(main))
       .setNumberOfArguments(1)
-      .setHelpText("/announcement delete <id>")
+      .addHelpText("/announcement delete <id>")
       .requiresPermission("ts.announcement.delete")
       .setTabComplete(0, announcementCompleter)
       .validateArgument(0, announcementExistsValidator);
 
     main.getCarbon()
-      .addCommand("announcement", "list")
+      .addCommand("announcement list")
       .withHandler(new CommandAnnouncementList(main))
       .setNumberOfArguments(0)
-      .setHelpText("/announcement list")
+      .addHelpText("/announcement list")
       .requiresPermission("ts.announcement.list");
 
     main.getCarbon()
-      .addCommand("announcement", "read")
+      .addCommand("announcement read")
       .withHandler(new CommandAnnouncementRead(main))
       .setNumberOfArguments(1)
-      .setHelpText("/announcement read <id>")
+      .addHelpText("/announcement read <id>")
       .requiresPermission("ts.announcement.read")
       .setTabComplete(0, announcementCompleter)
       .validateArgument(0, announcementExistsValidator);
 
     main.getCarbon()
-      .addCommand("announcement", "interval")
+      .addCommand("announcement interval")
       .withHandler(new CommandAnnouncementInterval(main))
       .setNumberOfArguments(0)
-      .setHelpText("/announcement interval")
+      .addHelpText("/announcement interval")
       .requiresPermission("ts.announcement.interval");
 
     main.getCarbon()
-      .addCommand("announcement", "interval", "set")
+      .addCommand("announcement interval set")
       .withHandler(new CommandAnnouncementIntervalSet(main))
-      .setHelpText("/announcement interval set <seconds>")
+      .addHelpText("/announcement interval set <seconds>")
       .requiresPermission("ts.announcement.interval.set")
       .setNumberOfArguments(1)
       .validateArgument(0, new NumberInRangeValidator(main, 1, Integer.MAX_VALUE));
@@ -200,13 +198,13 @@ public class Announcements {
       .withHandler(new CommandAnnouncement(main))
       .setNumberOfArguments(0)
       .requiresPermission("ts.announcement")
-      .setHelpText("/announcement");
+      .addHelpText("/announcement");
 
     main.getCarbon()
-      .addCommand("announcement", "enable")
+      .addCommand("announcement enable")
       .withHandler(new CommandAnnouncementEnable(main))
       .setNumberOfArguments(0)
       .requiresPermission("ts.announcement.enable")
-      .setHelpText("/announcement enable");
+      .addHelpText("/announcement enable");
   }
 }

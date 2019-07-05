@@ -1,5 +1,6 @@
 package com.github.hornta.trollskogen.racing.commands;
 
+import com.github.hornta.ICommandHandler;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.events.AddRaceStartPointEvent;
 import com.github.hornta.trollskogen.racing.objects.Race;
@@ -8,9 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
-
-import java.util.HashMap;
+import com.github.hornta.ICommandHandler;
 
 public class CommandAddStart implements ICommandHandler {
   private Main main;
@@ -28,6 +27,10 @@ public class CommandAddStart implements ICommandHandler {
     }
 
     Player player = (Player)commandSender;
+    if(race.getCheckpoint(player.getLocation()) != null) {
+      main.getMessageManager().sendMessage(commandSender, "error_add_start_occupied");
+      return;
+    }
 
     Location location = player.getLocation().clone();
     location.setX(location.getBlockX());

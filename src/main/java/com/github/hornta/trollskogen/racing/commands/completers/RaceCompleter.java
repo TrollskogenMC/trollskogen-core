@@ -1,15 +1,15 @@
 package com.github.hornta.trollskogen.racing.commands.completers;
 
+import com.github.hornta.BaseTabCompleter;
 import com.github.hornta.trollskogen.racing.Racing;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.BaseTabCompleter;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class RaceCompleter extends BaseTabCompleter {
+public class RaceCompleter implements BaseTabCompleter {
   private Racing racing;
 
   public RaceCompleter(Racing racing) {
@@ -22,10 +22,5 @@ public class RaceCompleter extends BaseTabCompleter {
       .filter(race -> race.getName().toLowerCase(Locale.ENGLISH).startsWith(arguments[0].toLowerCase(Locale.ENGLISH)))
       .map(Race::getName)
       .collect(Collectors.toList());
-  }
-
-  @Override
-  public List<String> toSuggestions(CommandSender sender, List<String> items) {
-    return items;
   }
 }

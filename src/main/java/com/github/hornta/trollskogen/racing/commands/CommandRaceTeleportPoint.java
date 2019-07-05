@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.racing.objects.RaceCheckpoint;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandRaceTeleportPoint implements ICommandHandler {
   private Main main;

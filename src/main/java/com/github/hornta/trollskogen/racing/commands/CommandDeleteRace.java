@@ -6,7 +6,7 @@ import com.github.hornta.trollskogen.racing.objects.Race;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.HashMap;
 

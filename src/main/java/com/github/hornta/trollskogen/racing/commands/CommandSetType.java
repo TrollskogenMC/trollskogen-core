@@ -4,7 +4,7 @@ import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.enums.RacingType;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandSetType implements ICommandHandler {
   private Main main;
@@ -19,6 +19,12 @@ public class CommandSetType implements ICommandHandler {
     if(!race.isEditing()) {
       main.getMessageManager().setValue("race_name", race.getName());
       main.getMessageManager().sendMessage(commandSender, "edit_no_edit_mode");
+      return;
+    }
+
+    if(race.getType() == RacingType.fromString(args[1])) {
+      main.getMessageManager().setValue("type", race.getType().toString());
+      main.getMessageManager().sendMessage(commandSender, "error_set_type_nochange");
       return;
     }
 

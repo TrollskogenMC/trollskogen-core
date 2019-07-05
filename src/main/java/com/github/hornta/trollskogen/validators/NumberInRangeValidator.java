@@ -1,12 +1,12 @@
 package com.github.hornta.trollskogen.validators;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
 import java.text.DecimalFormat;
 
-public class NumberInRangeValidator extends ValidationHandler {
+public class NumberInRangeValidator implements ValidationHandler {
   private Main main;
   private int min;
   private int max;
@@ -34,14 +34,12 @@ public class NumberInRangeValidator extends ValidationHandler {
   }
 
   @Override
-  public void setMessageValues(CommandSender sender, String[] args) {
+  public void whenInvalid(CommandSender commandSender, String[] args) {
+
     DecimalFormat formatter = new DecimalFormat("###,###.#");
     main.getMessageManager().setValue("min", formatter.format(min));
     main.getMessageManager().setValue("max", formatter.format(max));
-  }
 
-  @Override
-  public String getErrorMessage(CommandSender commandSender, String[] args) {
-    return "validate_number_range";
+    main.getMessageManager().sendMessage(commandSender, "validate_number_range");
   }
 }

@@ -2,7 +2,7 @@ package com.github.hornta.trollskogen.commands;
 
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.List;
 

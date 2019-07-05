@@ -4,7 +4,7 @@ import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import com.github.hornta.trollskogen.racing.enums.RaceState;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 public class CommandStopRace implements ICommandHandler {
   private Main main;

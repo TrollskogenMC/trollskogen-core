@@ -1,7 +1,8 @@
 package com.github.hornta.trollskogen;
 
+import com.github.hornta.Carbon;
+import com.github.hornta.CarbonCommand;
 import com.github.hornta.trollskogen.announcements.*;
-import com.github.hornta.trollskogen.announcements.commands.*;
 import com.github.hornta.trollskogen.commands.*;
 import com.github.hornta.trollskogen.completers.*;
 import com.github.hornta.trollskogen.effects.commands.CommandHat;
@@ -12,40 +13,46 @@ import com.github.hornta.trollskogen.effects.commands.CommandEffectUse;
 import com.github.hornta.trollskogen.effects.ParticleManager;
 import com.github.hornta.trollskogen.homes.*;
 import com.github.hornta.trollskogen.homes.commands.*;
+import com.github.hornta.trollskogen.messagemanager.MessageManager;
 import com.github.hornta.trollskogen.racing.Racing;
-import com.github.hornta.trollskogen.validators.*;
+import com.github.hornta.trollskogen.validators.PlayerExistValidator;
+import com.github.hornta.trollskogen.validators.RegexValidator;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import se.hornta.carbon.Carbon;
-import se.hornta.carbon.DefaultArgument;
-import se.hornta.carbon.MessageManager;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 import static org.asynchttpclient.Dsl.config;
 
 public final class Main extends JavaPlugin {
+  private static Main main;
+  private static Racing racing;
+  private static TrollskogenConfig trollskogenConfig;
+  private static AsyncHttpClient asyncHttpClient;
   private Announcements announcements;
   private MessageManager messageManager;
   private Carbon carbon;
-  private TrollskogenConfig trollskogenConfig;
   private UserManager userManager;
   private ParticleManager particleManager;
-  private AsyncHttpClient asyncHttpClient;
-  private Racing racing;
   private SongManager songManager;
 
   private boolean isMaintenance;
 
   @Override
   public void onEnable() {
+    main = this;
+    getPlugin().g
+
     if (!Bukkit.getPluginManager().isPluginEnabled("NoteBlockAPI")) {
       this.getLogger().severe("*** NoteBlockAPI is not installed or not enabled. ***");
       this.getLogger().severe("*** This plugin will be disabled. ***");
@@ -55,15 +62,14 @@ public final class Main extends JavaPlugin {
 
     new VersionManager();
 
-    DefaultAsyncHttpClientConfig.Builder config = config();
-    config.setConnectTimeout(1000);
-    config.setRequestTimeout(1000);
-    asyncHttpClient = asyncHttpClient(config);
+    DefaultAsyncHttpClientConfig.Builder httpConfig = config();
+    httpConfig.setConnectTimeout(1000);
+    httpConfig.setRequestTimeout(1000);
+    asyncHttpClient = asyncHttpClient(httpConfig);
 
     announcements = new Announcements(this);
     messageManager = new MessageManager(this);
-    carbon = new Carbon(messageManager);
-    carbon.setNoPermissionMessage(messageManager.getMessage("no_permission"));
+    carbon = new Carbon();
     trollskogenConfig = new TrollskogenConfig(this);
     userManager = new UserManager(this);
     particleManager = new ParticleManager(this);
@@ -78,19 +84,36 @@ public final class Main extends JavaPlugin {
     Announcements.setupCommands(this);
     Racing.setupCommands(this);
 
+    carbon.setNoPermissionHandler((CommandSender sender, CarbonCommand command) -> {
+      main.getMessageManager().sendMessage(sender, "no_permission");
+    });
+
+    carbon.setMissingArgumentHandler((CommandSender sender, CarbonCommand command) -> {
+      messageManager.setValue("usages", String.join("\n", command.getHelpTexts().toArray(new String[0])));
+      messageManager.sendMessage(sender, "command_incorrect_num_arguments");
+    });
+
+    carbon.setMissingCommandHandler((CommandSender sender, List<CarbonCommand> suggestions) -> {
+      messageManager.setValue("command_suggestions", suggestions.stream()
+        .map(CarbonCommand::getHelpTexts)
+        .flatMap(List::stream)
+        .collect(Collectors.joining("\n")));
+      messageManager.sendMessage(sender, "command_not_found_suggestions");
+    });
+
     carbon
-      .addCommand("ts", "setstarterkit")
+      .addCommand("ts setstarterkit")
       .withHandler(new CommandSetStarterKit(this))
       .requiresPermission("ts.setstarterkit")
       .setNumberOfArguments(0)
-      .setHelpText("/ts setstarterkit")
+      .addHelpText("/ts setstarterkit")
       .preventConsoleCommandSender();
 
     carbon
-      .addCommand("ts", "reload")
+      .addCommand("ts reload")
       .withHandler(new CommandReload(this))
       .setNumberOfArguments(0)
-      .setHelpText("/ts reload")
+      .addHelpText("/ts reload")
       .requiresPermission("ts.reload");
 
     carbon
@@ -98,29 +121,29 @@ public final class Main extends JavaPlugin {
       .withHandler(new CommandHat(this))
       .setNumberOfArguments(0)
       .requiresPermission("ts.hat")
-      .setHelpText("/hat")
+      .addHelpText("/hat")
       .preventConsoleCommandSender();
 
     carbon
-      .addCommand("ts", "help")
+      .addCommand("ts help")
       .withHandler(new CommandHelp(this))
       .setNumberOfArguments(0)
       .requiresPermission("ts.help");
 
     carbon
-      .addCommand("effect", "use")
+      .addCommand("effect use")
       .withHandler(new CommandEffectUse(this))
-      .setHelpText("/effect use <effect>")
+      .addHelpText("/effect use <effect>")
       .requiresPermission("ts.effect.use")
       .setNumberOfArguments(1)
       .validateArgument(0, new EffectValidator(this))
-      .setTabComplete(0, new EffectCompleter(this))
+      .setTabComplete(0, new EffectCompleter())
       .preventConsoleCommandSender();
 
     carbon
-      .addCommand("effect", "reset")
+      .addCommand("effect reset")
       .withHandler(new CommandEffectReset(this))
-      .setHelpText("/effect reset")
+      .addHelpText("/effect reset")
       .requiresPermission("ts.effect.reset")
       .setNumberOfArguments(0)
       .preventConsoleCommandSender();
@@ -130,7 +153,7 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("ban")
       .withHandler(new CommandBan(this))
-      .setHelpText(new String[] {
+      .addHelpTexts(new String[] {
         "/ban <player> <reason>",
         "/ban <player> <time> <reason>"
       })
@@ -142,16 +165,16 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("unban")
       .withHandler(new CommandUnban(this))
-      .setHelpText("/unban <player>")
+      .addHelpText("/unban <player>")
       .requiresPermission("ts.unban")
       .setNumberOfArguments(1)
       .validateArgument(0, playerExistValidator)
-      .setTabComplete(0, playerCompleter, playerCompleter::getBanned);
+      .setTabComplete(0, new BannedPlayerCompleter(this));
 
     carbon
       .addCommand("banlist")
       .withHandler(new CommandBanList(this))
-      .setHelpText("/banlist")
+      .addHelpText("/banlist")
       .requiresPermission("ts.banlist")
       .setNumberOfArguments(0);
 
@@ -161,10 +184,10 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("home")
       .withHandler(new CommandHome(this))
-      .setHelpText("/home <home>")
+      .addHelpText("/home <home>")
       .requiresPermission("ts.home")
       .setNumberOfArguments(1)
-      .withDefaultArgument(new DefaultArgument((CommandSender sender) -> getUser(sender).getFirstHomeName()))
+      .withDefaultArgument((CommandSender sender) -> getUser(sender).getFirstHomeName())
       .setTabComplete(0, homeCompleter)
       .validateArgument(0, homeExistValidator)
       .preventConsoleCommandSender();
@@ -173,10 +196,10 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("sethome")
       .withHandler(new CommandSetHome(this))
-      .setHelpText("/sethome <home>")
+      .addHelpText("/sethome <home>")
       .requiresPermission("ts.sethome")
       .setNumberOfArguments(1)
-      .withDefaultArgument(new DefaultArgument(Home.DEFAULT_HOME_NAME))
+      .withDefaultArgument(Home.DEFAULT_HOME_NAME)
       .setTabComplete(0, homeCompleter)
       .validateArgument(0, setHomeNameValidator)
       .preventConsoleCommandSender();
@@ -184,7 +207,7 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("delhome")
       .withHandler(new CommandDelHome(this))
-      .setHelpText("/delhome <home>")
+      .addHelpText("/delhome <home>")
       .requiresPermission("ts.delhome")
       .setNumberOfArguments(1)
       .setTabComplete(0, homeCompleter)
@@ -194,7 +217,7 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("homes")
       .withHandler(new CommandHomes(this))
-      .setHelpText("/homes")
+      .addHelpText("/homes")
       .requiresPermission("ts.homes")
       .setNumberOfArguments(0)
       .preventConsoleCommandSender();
@@ -202,26 +225,26 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("maintenance")
       .withHandler(new CommandMaintenance(this))
-      .setHelpText("/maintenance")
+      .addHelpText("/maintenance")
       .requiresPermission("ts.maintenance")
       .setNumberOfArguments(0);
 
     carbon
       .addCommand("phome")
       .withHandler(new CommandPHome(this))
-      .setHelpText("/phome <player> <home>")
+      .addHelpText("/phome <player> <home>")
       .requiresPermission("ts.phome")
       .setNumberOfArguments(2)
       .validateArgument(0, playerExistValidator)
       .setTabComplete(0, playerCompleter)
-      .validateArgument(new int[] {0, 1}, homeExistValidator, homeExistValidator::testPlayerHome)
-      .setTabComplete(new int[] {0, 1}, homeCompleter, homeCompleter::getPlayerHomes)
+      .validateArgument(new int[] {0, 1}, new PlayerHomeExistValidator(this))
+      .setTabComplete(new int[] {0, 1}, new PlayerHomeCompleter(this))
       .preventConsoleCommandSender();
 
     carbon
       .addCommand("verify")
       .withHandler(new CommandVerify(this))
-      .setHelpText("/verify")
+      .addHelpText("/verify")
       .requiresPermission("ts.verify")
       .setNumberOfArguments(0)
       .preventConsoleCommandSender();
@@ -229,26 +252,15 @@ public final class Main extends JavaPlugin {
     carbon
       .addCommand("callevent")
       .withHandler(new CommandCallEvent(this))
-      .setHelpText("/callevent <event> [args]")
+      .addHelpText("/callevent <event> [args]")
       .setMinNumberOfArguments(1)
       .preventPlayerCommandSender();
 
     carbon
-      .addCommand("playsong")
-      .withHandler(new CommandPlaySong(this))
-      .setHelpText("/playsong <song>")
-      .setNumberOfArguments(1)
-      .validateArgument(0, new SongExistValidator(this))
-      .setTabComplete(0, new SongCompleter(this))
-      .requiresPermission("ts.playsong")
-      .preventConsoleCommandSender();
-
-    carbon
-      .addCommand("stopsong")
-      .withHandler(new CommandStopSong(this))
-      .setHelpText("/stopsong <song>")
-      .requiresPermission("ts.stopsong")
-      .preventConsoleCommandSender();
+      .addCommand("effect")
+      .withHandler((CommandSender sender, String[] args) -> {
+        sender.sendMessage("Success " + args.length);
+      });
   }
 
   @Override
@@ -274,10 +286,6 @@ public final class Main extends JavaPlugin {
     return carbon;
   }
 
-  public TrollskogenConfig getTrollskogenConfig() {
-    return trollskogenConfig;
-  }
-
   public UserManager getUserManager() {
     return userManager;
   }
@@ -286,8 +294,20 @@ public final class Main extends JavaPlugin {
     return particleManager;
   }
 
-  public Racing getRacing() {
+  public static Racing getRacing() {
     return racing;
+  }
+
+  public static Plugin getPlugin() {
+    return main;
+  }
+
+  public static TrollskogenConfig getTrollskogenConfig() {
+    return trollskogenConfig;
+  }
+
+  public static AsyncHttpClient getAsyncHttpClient() {
+    return asyncHttpClient;
   }
 
   public SongManager getSongManager() {
@@ -315,7 +335,7 @@ public final class Main extends JavaPlugin {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    return carbon.getCommandManager().handleCommand(sender, command, label, args);
+    return carbon.getCommandManager().handleCommand(sender, command, args);
   }
 
   @Override
@@ -344,7 +364,4 @@ public final class Main extends JavaPlugin {
     return false;
   }
 
-  public AsyncHttpClient getAsyncHttpClient() {
-    return asyncHttpClient;
-  }
 }

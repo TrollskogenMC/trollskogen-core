@@ -1,10 +1,10 @@
 package com.github.hornta.trollskogen.validators;
 
+import com.github.hornta.ValidationHandler;
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ValidationHandler;
 
-public class PlayerExistValidator extends ValidationHandler {
+public class PlayerExistValidator implements ValidationHandler {
   private Main main;
 
   public PlayerExistValidator(Main main) {
@@ -18,11 +18,7 @@ public class PlayerExistValidator extends ValidationHandler {
   }
 
   @Override
-  public void setMessageValues(CommandSender sender, String[] s) {
-  }
-
-  @Override
-  public String getErrorMessage(CommandSender commandSender, String[] args) {
-    return "player-not-found";
+  public void whenInvalid(CommandSender commandSender, String[] args) {
+    main.getMessageManager().sendMessage(commandSender, "player-not-found");
   }
 }

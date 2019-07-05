@@ -3,7 +3,7 @@ package com.github.hornta.trollskogen.racing.commands;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.racing.objects.Race;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.ICommandHandler;
+import com.github.hornta.ICommandHandler;
 
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,14 +1,14 @@
 package com.github.hornta.trollskogen.racing.commands.completers;
 
+import com.github.hornta.BaseTabCompleter;
 import com.github.hornta.trollskogen.racing.Racing;
 import org.bukkit.command.CommandSender;
-import se.hornta.carbon.BaseTabCompleter;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class StartPointCompleter extends BaseTabCompleter {
+public class StartPointCompleter implements BaseTabCompleter {
   private Racing racing;
 
   public StartPointCompleter(Racing plugin) {
@@ -21,10 +21,5 @@ public class StartPointCompleter extends BaseTabCompleter {
       .filter(point -> String.valueOf(point.getPosition()).toLowerCase(Locale.ENGLISH).startsWith(arguments[1].toLowerCase(Locale.ENGLISH)))
       .map(p -> String.valueOf(p.getPosition()))
       .collect(Collectors.toList());
-  }
-
-  @Override
-  public List<String> toSuggestions(CommandSender sender, List<String> items) {
-    return items;
   }
 }
