@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 public class PrefixMatcher {
   private static final String SYMBOLS = "abcdefghijklmnopqrstuvwxyz_0123456789";
   private static final int NUMBER_OF_SYMBOLS = 37;
-  private static final Map<String, Integer> symbolIndicies = Arrays.stream(SYMBOLS.split("")).collect(Collectors.toMap(x -> x, SYMBOLS::indexOf));
+  private static final Map<String, Integer> symbolIndicies = Arrays.stream(
+    SYMBOLS.split("")).collect(Collectors.toMap(x -> x, SYMBOLS::indexOf)
+  );
 
   private boolean isLeaf = true;
   private PrefixMatcher[] children = new PrefixMatcher[NUMBER_OF_SYMBOLS];
@@ -63,7 +65,7 @@ public class PrefixMatcher {
     return false;
   }
 
-  private static List<String> recursivelyGetItems(PrefixMatcher node, List<String> items) {
+  private static Set<String> recursivelyGetItems(PrefixMatcher node, Set<String> items) {
     if(node.value != null) {
       items.add(node.value);
     }
@@ -102,9 +104,9 @@ public class PrefixMatcher {
     return recursivelyDelete(null, 0, this, key);
   }
 
-  public List<String> find(String key) {
+  public Set<String> find(String key) {
     key = key.toLowerCase(Locale.ENGLISH);
-    List<String> items = new ArrayList<>();
+    Set<String> items = new HashSet<>();
     PrefixMatcher node = this;
     for(int level = 0; level < key.length(); ++level) {
       int index = getSymbolIndex(key.charAt(level));

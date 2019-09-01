@@ -12,7 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 import static org.asynchttpclient.Dsl.*;
 
 import java.util.logging.Level;
@@ -26,7 +26,7 @@ public class CommandVerify implements ICommandHandler, Listener {
   }
 
   @Override
-  public void handle(CommandSender sender, String[] args) {
+  public void handle(CommandSender sender, String[] args, int typedArgs) {
     User user = main.getUser(sender);
     if(user.isDiscordVerified()) {
       main.getMessageManager().sendMessage(sender, "already_verified");

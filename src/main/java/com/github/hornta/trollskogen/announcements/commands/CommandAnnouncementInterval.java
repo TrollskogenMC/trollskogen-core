@@ -2,7 +2,7 @@ package com.github.hornta.trollskogen.announcements.commands;
 
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.command.CommandSender;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 import java.text.DecimalFormat;
 
@@ -13,7 +13,7 @@ public class CommandAnnouncementInterval implements ICommandHandler {
   }
 
   @Override
-  public void handle(CommandSender commandSender, String[] args) {
+  public void handle(CommandSender commandSender, String[] args, int typedArgs) {
     long interval = main.getAnnouncements().getInterval();
     main.getMessageManager().setValue("second", main.getSeconds((int)interval));
     main.getMessageManager().setValue("interval", new DecimalFormat("###,###.#").format(interval));

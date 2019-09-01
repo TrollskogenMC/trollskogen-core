@@ -24,8 +24,8 @@ public class ParticleManager implements Listener {
   }
 
   public void useParticle(Player player, ParticleEffect particleEffect) {
-    playerParticles.put(player, particleEffect);
-    EffectTask task = new EffectTask(this, player, particleEffect);
-    task.runTaskTimerAsynchronously(main, 0L, TICKS_BETWEEN_TASK);
+    //playerParticles.put(player, particleEffect);
+    //EffectTask task = new EffectTask(this, player, particleEffect);
+    //task.runTaskTimerAsynchronously(main, 0L, TICKS_BETWEEN_TASK);
   }
 }

@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.DateUtils;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
 import org.bukkit.command.CommandSender;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -18,7 +18,7 @@ public class CommandBanList extends BaseCommand implements ICommandHandler {
   }
 
   @Override
-  public void handle(CommandSender commandSender, String[] args) {
+  public void handle(CommandSender commandSender, String[] args, int typedArgs) {
     commandSender.sendMessage(main.getUserManager()
       .getUsers()
       .values()

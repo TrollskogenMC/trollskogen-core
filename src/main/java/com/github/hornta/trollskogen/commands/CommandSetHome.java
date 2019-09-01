@@ -1,11 +1,11 @@
-package com.github.hornta.trollskogen.homes.commands;
+package com.github.hornta.trollskogen.commands;
 
 import com.github.hornta.trollskogen.homes.Home;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 import java.util.regex.Pattern;
 
@@ -18,7 +18,7 @@ public class CommandSetHome implements ICommandHandler {
   }
 
   @Override
-  public void handle(CommandSender sender, String[] args) {
+  public void handle(CommandSender sender, String[] args, int typedArgs) {
     User user = main.getUser(sender);
     Home existingHome = user.getHome(args[0]);
 

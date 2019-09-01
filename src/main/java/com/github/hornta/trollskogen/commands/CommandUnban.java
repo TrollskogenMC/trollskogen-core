@@ -4,7 +4,7 @@ import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 import java.util.logging.Level;
 
@@ -16,7 +16,7 @@ public class CommandUnban implements ICommandHandler {
   }
 
   @Override
-  public void handle(CommandSender commandSender, String[] args) {
+  public void handle(CommandSender commandSender, String[] args, int typedArgs) {
     User user = main.getUser(args[0]);
     if(!user.isBanned()) {
       main.getMessageManager().setValue("player", user.getLastSeenAs());

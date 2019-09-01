@@ -1,4 +1,4 @@
-package com.github.hornta.trollskogen.effects.commands;
+package com.github.hornta.trollskogen.commands;
 
 import com.github.hornta.trollskogen.Main;
 import org.bukkit.Material;
@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 public class CommandHat implements ICommandHandler {
   Main main;
@@ -16,7 +16,7 @@ public class CommandHat implements ICommandHandler {
   }
 
   @Override
-  public void handle(CommandSender commandSender, String[] strings) {
+  public void handle(CommandSender commandSender, String[] strings, int typedArgs) {
     Player player = (Player)commandSender;
     PlayerInventory inv = player.getInventory();
     ItemStack held = inv.getItemInMainHand();

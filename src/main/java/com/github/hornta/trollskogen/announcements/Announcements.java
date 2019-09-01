@@ -1,9 +1,11 @@
 package com.github.hornta.trollskogen.announcements;
 
+import com.github.hornta.carbon.CarbonArgument;
+import com.github.hornta.carbon.CarbonArgumentType;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.announcements.commands.*;
+import com.github.hornta.trollskogen.announcements.commands.argumentHandlers.AnnouncementArgumentHandler;
 import com.github.hornta.trollskogen.messagemanager.Config;
-import com.github.hornta.trollskogen.validators.NumberInRangeValidator;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -135,76 +137,72 @@ public class Announcements {
   }
 
   public static void setupCommands(Main main) {
-    AnnouncementExistValidator announcementExistsValidator = new AnnouncementExistValidator(main);
-    AnnouncementCompleter announcementCompleter = new AnnouncementCompleter(main);
-
     main.getCarbon()
       .addCommand("announcement disable")
       .withHandler(new CommandAnnouncementDisable(main))
-      .setNumberOfArguments(0)
-      .requiresPermission("ts.announcement.disable")
-      .addHelpText("/announcement disable");
+      .requiresPermission("ts.announcement.disable");
 
     main.getCarbon()
       .addCommand("announcement set")
+      .withArgument(
+        new CarbonArgument.Builder("id").create()
+      )
+      .withArgument(
+        new CarbonArgument.Builder("message")
+        .catchRemaining()
+        .create()
+      )
       .withHandler(new CommandAnnouncementSet(main))
-      .setMinNumberOfArguments(2)
-      .addHelpText("/announcement set <id> <message>")
-      .requiresPermission("ts.announcement.set")
-      .setTabComplete(0, announcementCompleter);
+      .requiresPermission("ts.announcement.set");
+
+    CarbonArgument announcementArgument =
+      new CarbonArgument.Builder("id")
+      .setHandler(new AnnouncementArgumentHandler(main))
+      .create();
 
     main.getCarbon()
       .addCommand("announcement delete")
+      .withArgument(announcementArgument)
       .withHandler(new CommandAnnouncementDelete(main))
-      .setNumberOfArguments(1)
-      .addHelpText("/announcement delete <id>")
-      .requiresPermission("ts.announcement.delete")
-      .setTabComplete(0, announcementCompleter)
-      .validateArgument(0, announcementExistsValidator);
+
+      .requiresPermission("ts.announcement.delete");
 
     main.getCarbon()
       .addCommand("announcement list")
       .withHandler(new CommandAnnouncementList(main))
-      .setNumberOfArguments(0)
-      .addHelpText("/announcement list")
       .requiresPermission("ts.announcement.list");
 
     main.getCarbon()
       .addCommand("announcement read")
+      .withArgument(announcementArgument)
       .withHandler(new CommandAnnouncementRead(main))
-      .setNumberOfArguments(1)
-      .addHelpText("/announcement read <id>")
-      .requiresPermission("ts.announcement.read")
-      .setTabComplete(0, announcementCompleter)
-      .validateArgument(0, announcementExistsValidator);
+      .requiresPermission("ts.announcement.read");
 
     main.getCarbon()
       .addCommand("announcement interval")
       .withHandler(new CommandAnnouncementInterval(main))
-      .setNumberOfArguments(0)
-      .addHelpText("/announcement interval")
       .requiresPermission("ts.announcement.interval");
 
     main.getCarbon()
       .addCommand("announcement interval set")
+      .withArgument(
+        new CarbonArgument.Builder("seconds")
+        .setType(CarbonArgumentType.INTEGER)
+        .setMin(1)
+        .setMax(Integer.MAX_VALUE)
+        .create()
+      )
       .withHandler(new CommandAnnouncementIntervalSet(main))
-      .addHelpText("/announcement interval set <seconds>")
-      .requiresPermission("ts.announcement.interval.set")
-      .setNumberOfArguments(1)
-      .validateArgument(0, new NumberInRangeValidator(main, 1, Integer.MAX_VALUE));
+      .requiresPermission("ts.announcement.interval.set");
 
     main.getCarbon()
       .addCommand("announcement")
       .withHandler(new CommandAnnouncement(main))
-      .setNumberOfArguments(0)
-      .requiresPermission("ts.announcement")
-      .addHelpText("/announcement");
+      .requiresPermission("ts.announcement");
 
     main.getCarbon()
       .addCommand("announcement enable")
       .withHandler(new CommandAnnouncementEnable(main))
-      .setNumberOfArguments(0)
-      .requiresPermission("ts.announcement.enable")
-      .addHelpText("/announcement enable");
+      .requiresPermission("ts.announcement.enable");
   }
 }

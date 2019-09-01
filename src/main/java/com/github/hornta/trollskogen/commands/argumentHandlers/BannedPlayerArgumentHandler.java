@@ -1,11 +1,14 @@
 package com.github.hornta.trollskogen.commands.argumentHandlers;
 
-import com.github.hornta.completers.IArgumentHandler;
+import com.github.hornta.carbon.ValidationResult;
+import com.github.hornta.carbon.completers.IArgumentHandler;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.PrefixMatcher;
 import com.github.hornta.trollskogen.User;
+import com.github.hornta.trollskogen.events.BanUserEvent;
 import com.github.hornta.trollskogen.events.NewUserEvent;
 import com.github.hornta.trollskogen.events.ReadUsersEvent;
+import com.github.hornta.trollskogen.events.UnbanUserEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
@@ -14,12 +17,12 @@ import org.bukkit.event.Listener;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PlayerArgumentHandler implements IArgumentHandler, Listener {
+public class BannedPlayerArgumentHandler implements IArgumentHandler, Listener {
   private Main main;
   private Set<User> parsedUsers = new HashSet<>();
-  private PrefixMatcher allUsernames = new PrefixMatcher();
+  private PrefixMatcher bannedUsernames = new PrefixMatcher();
 
-  public PlayerArgumentHandler(Main main) {
+  public BannedPlayerArgumentHandler(Main main) {
     this.main = main;
     Bukkit.getServer().getPluginManager().registerEvents(this, main);
   }
@@ -36,22 +39,40 @@ public class PlayerArgumentHandler implements IArgumentHandler, Listener {
     parseUser(event.getUser());
   }
 
+  @EventHandler
+  private void onBanUser(BanUserEvent event) {
+    bannedUsernames.insert(event.getUser().getLastSeenAs());
+  }
+
+  @EventHandler
+  private void onUnbanUser(UnbanUserEvent event) {
+    bannedUsernames.delete(event.getUser().getLastSeenAs());
+  }
+
   private void parseUser(User user) {
     if(parsedUsers.contains(user)) {
       return;
     }
 
-    allUsernames.insert(user.getLastSeenAs());
+    if(user.isBanned()) {
+      bannedUsernames.insert(user.getLastSeenAs());
+    }
+
     parsedUsers.add(user);
   }
 
   @Override
   public Set<String> getItems(CommandSender sender, String argument, String[] prevArgs) {
-    return allUsernames.find(argument);
+    return bannedUsernames.find(argument);
   }
 
   @Override
   public boolean test(Set<String> items, String argument) {
-    return false;
+    return bannedUsernames.find(argument).contains(argument);
+  }
+
+  @Override
+  public void whenInvalid(ValidationResult validationResult) {
+    main.getMessageManager().sendMessage(validationResult.getCommandSender(), "player-not-found");
   }
 }

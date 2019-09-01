@@ -1,12 +1,9 @@
-package com.github.hornta.race.commands.argumentHandlers;
+package com.github.hornta.trollskogen.commands.argumentHandlers;
 
-import com.github.hornta.ValidationResult;
-import com.github.hornta.completers.IArgumentHandler;
-import com.github.hornta.race.enums.RaceStatType;
-import com.github.hornta.race.enums.RaceState;
-import com.github.hornta.race.enums.RaceType;
-import com.github.hornta.race.message.MessageKey;
-import com.github.hornta.race.message.MessageManager;
+import com.github.hornta.carbon.ValidationResult;
+import com.github.hornta.carbon.completers.IArgumentHandler;
+import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.effects.ParticleEffect;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
@@ -15,12 +12,17 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class RaceStatArgumentHandler implements IArgumentHandler {
+public class EffectArgumentHandler implements IArgumentHandler {
+  private Main main;
+
+  public EffectArgumentHandler(Main main) {
+    this.main = main;
+  }
 
   @Override
   public Set<String> getItems(CommandSender sender, String argument, String[] prevArgs) {
-    return Arrays.stream(RaceStatType.values())
-      .map(RaceStatType::name)
+    return Arrays.stream(ParticleEffect.values())
+      .map(ParticleEffect::name)
       .map((String s) -> s.toLowerCase(Locale.ENGLISH))
       .filter(type -> type.startsWith(argument.toLowerCase(Locale.ENGLISH)))
       .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -33,8 +35,8 @@ public class RaceStatArgumentHandler implements IArgumentHandler {
 
   @Override
   public void whenInvalid(ValidationResult result) {
-    MessageManager.setValue("stat_type", result.getValue());
-    MessageManager.setValue("stat_types", Arrays.stream(RaceStatType.values()).map(RaceStatType::name).collect(Collectors.joining(", ")));
-    MessageManager.sendMessage(result.getCommandSender(), MessageKey.STAT_TYPE_NOT_FOUND);
+    main.getMessageManager().setValue("effect_id", result.getValue());
+    main.getMessageManager().setValue("effects", Arrays.stream(ParticleEffect.values()).map(ParticleEffect::name).collect(Collectors.joining(", ")));
+    main.getMessageManager().sendMessage(result.getCommandSender(), "effect_not_found");
   }
 }

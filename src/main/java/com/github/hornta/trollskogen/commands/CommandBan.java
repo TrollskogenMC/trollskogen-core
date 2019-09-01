@@ -7,20 +7,22 @@ import com.github.hornta.trollskogen.User;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 import java.time.LocalDateTime;
 import java.util.logging.Level;
 
 public class CommandBan extends BaseCommand implements ICommandHandler {
   private Main main;
+  private boolean tempBan;
 
-  public CommandBan(Main main) {
+  public CommandBan(Main main, boolean tempBan) {
     this.main = main;
+    this.tempBan = tempBan;
   }
 
   @Override
-  public void handle(CommandSender commandSender, String[] args) {
+  public void handle(CommandSender commandSender, String[] args, int typedArgs) {
     String time = getLastArg(args, 1);
     String reason = DateUtils.removeTimePattern(time);
 

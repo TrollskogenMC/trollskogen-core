@@ -2,13 +2,13 @@ name: Trollskogen
 version: ${project.version}
 main: com.github.hornta.trollskogen.Main
 api-version: 1.13
-softdepend: [RacingmcMMO]
 commands:
   ts:
   hat:
   announcement:
   effect:
   ban:
+  tmpban:
   unban:
   banlist:
   home:
@@ -19,7 +19,6 @@ commands:
   phome:
   verify:
   callevent:
-  race:
   playsong:
   stopsong:
   skipwait:

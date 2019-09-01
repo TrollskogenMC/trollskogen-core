@@ -5,7 +5,7 @@ import com.github.hornta.trollskogen.User;
 import com.github.hornta.trollskogen.events.UserVerifiedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import com.github.hornta.ICommandHandler;
+import com.github.hornta.carbon.ICommandHandler;
 
 import java.util.UUID;
 import java.util.logging.Level;
@@ -18,7 +18,7 @@ public class CommandCallEvent implements ICommandHandler {
   }
 
   @Override
-  public void handle(CommandSender sender, String[] args) {
+  public void handle(CommandSender sender, String[] args, int typedArgs) {
     Class eventClass;
     try {
       eventClass = Class.forName(args[0]);
@@ -27,11 +27,12 @@ public class CommandCallEvent implements ICommandHandler {
       return;
     }
 
-    if(eventClass.equals(UserVerifiedEvent.class) && args.length == 3) {
-      User user = main.getUser(UUID.fromString(args[1]));
+    if(eventClass.equals(UserVerifiedEvent.class)) {
+      String[] eventArgs = args[1].split(" ");
+      User user = main.getUser(UUID.fromString(eventArgs[0]));
       boolean isVerified;
 
-      switch (args[2]) {
+      switch (eventArgs[1]) {
         case "true":
           isVerified = true;
           break;

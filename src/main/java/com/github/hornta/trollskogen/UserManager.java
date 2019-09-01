@@ -180,7 +180,6 @@ public class UserManager implements Listener {
           User user = new User(main, key, section);
           userCache.put(user.getPlayer().getUniqueId(), user);
           nameToUser.put(user.getLastSeenAs().toLowerCase(Locale.ENGLISH), user);
-          Bukkit.getLogger().log(Level.INFO, "Read user `" + user.getLastSeenAs() + "` from user cache");
         }
       } catch (Throwable t) {
         t.printStackTrace();

@@ -15,7 +15,6 @@ public class TrollskogenConfig {
   private Map<String, Integer> homePermissions = Collections.emptyMap();
   private List<String> allowedMaintenance;
   private String APIUrl;
-  private int requiredStartPoints;
 
   TrollskogenConfig(Main main) {
     this.file = new Config(main, "config.yml");
@@ -42,7 +41,6 @@ public class TrollskogenConfig {
 
     allowedMaintenance = file.getConfig().getStringList("maintenance");
     APIUrl = file.getConfig().getString("api_url");
-    requiredStartPoints = file.getConfig().getInt("racing_required_start_points");
   }
 
   public void reload() {
@@ -93,9 +91,5 @@ public class TrollskogenConfig {
 
   public String getAPIUrl() {
     return APIUrl;
-  }
-
-  public int getRequiredStartPoints() {
-    return requiredStartPoints;
   }
 }

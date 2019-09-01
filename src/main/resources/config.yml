@@ -6,4 +6,3 @@ maintenance:
   - hornta
   - philip2096
 api_url: http://localhost:8080
-racing_required_start_points: 1

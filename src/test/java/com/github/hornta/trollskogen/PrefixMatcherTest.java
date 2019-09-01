@@ -1,8 +1,7 @@
 package com.github.hornta.trollskogen;
 
+import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class PrefixMatcherTest {
 
@@ -15,11 +14,11 @@ public class PrefixMatcherTest {
     prefixMatcher.insert("abcd");
     prefixMatcher.insert("a11111111abcdddddddddd3d");
 
-    assertEquals(prefixMatcher.find("a").size(), 5);
-    assertEquals(prefixMatcher.find("ab").size(), 3);
-    assertEquals(prefixMatcher.find("abc").size(), 2);
-    assertEquals(prefixMatcher.find("abcd").size(), 1);
-    assertEquals(prefixMatcher.find("abcde").size(), 0);
+    Assert.assertEquals(prefixMatcher.find("a").size(), 5);
+    Assert.assertEquals(prefixMatcher.find("ab").size(), 3);
+    Assert.assertEquals(prefixMatcher.find("abc").size(), 2);
+    Assert.assertEquals(prefixMatcher.find("abcd").size(), 1);
+    Assert.assertEquals(prefixMatcher.find("abcde").size(), 0);
   }
 
   @Test
@@ -29,7 +28,7 @@ public class PrefixMatcherTest {
     prefixMatcher.insert("ab");
     prefixMatcher.delete("ab");
 
-    assertEquals(prefixMatcher.find("a").size(), 1);
+    Assert.assertEquals(prefixMatcher.find("a").size(), 1);
   }
 
   @Test
@@ -39,6 +38,6 @@ public class PrefixMatcherTest {
     prefixMatcher.insert("ab");
     prefixMatcher.delete("a");
 
-    assertEquals(prefixMatcher.find("a").size(), 1);
+    Assert.assertEquals(prefixMatcher.find("a").size(), 1);
   }
 }
