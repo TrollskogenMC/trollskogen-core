@@ -53,7 +53,7 @@ public class PlayerArgumentHandler implements IArgumentHandler, Listener {
 
   @Override
   public boolean test(Set<String> items, String argument) {
-    return allUsernames.find(argument).contains(argument);
+    return items.contains(argument);
   }
 
   @Override

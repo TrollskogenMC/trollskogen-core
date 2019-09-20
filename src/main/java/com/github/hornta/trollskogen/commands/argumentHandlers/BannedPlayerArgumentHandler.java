@@ -24,7 +24,6 @@ public class BannedPlayerArgumentHandler implements IArgumentHandler, Listener {
 
   public BannedPlayerArgumentHandler(Main main) {
     this.main = main;
-    Bukkit.getServer().getPluginManager().registerEvents(this, main);
   }
 
   @EventHandler
@@ -68,7 +67,7 @@ public class BannedPlayerArgumentHandler implements IArgumentHandler, Listener {
 
   @Override
   public boolean test(Set<String> items, String argument) {
-    return bannedUsernames.find(argument).contains(argument);
+    return items.contains(argument);
   }
 
   @Override

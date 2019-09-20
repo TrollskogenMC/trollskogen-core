@@ -40,4 +40,15 @@ public class PrefixMatcherTest {
 
     Assert.assertEquals(prefixMatcher.find("a").size(), 1);
   }
+
+  @Test
+  public void testInsertDuplicate() {
+    PrefixMatcher prefixMatcher = new PrefixMatcher();
+    prefixMatcher.insert("a");
+    prefixMatcher.insert("a");
+    prefixMatcher.insert("a");
+    prefixMatcher.insert("a");
+
+    Assert.assertEquals(prefixMatcher.find("a").size(), 1);
+  }
 }

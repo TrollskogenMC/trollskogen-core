@@ -1,8 +1,10 @@
 package com.github.hornta.trollskogen.commands;
 
+import com.github.hornta.trollskogen.events.SetHomeEvent;
 import com.github.hornta.trollskogen.homes.Home;
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.User;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import com.github.hornta.carbon.ICommandHandler;
@@ -29,7 +31,9 @@ public class CommandSetHome implements ICommandHandler {
       return;
     }
 
-    user.setHome(args[0], ((Player)user.getPlayer()).getLocation());
+    Home home = user.setHome(args[0], ((Player)user.getPlayer()).getLocation());
+    Bukkit.getPluginManager().callEvent(new SetHomeEvent(home, existingHome != null ? existingHome.getGeometry() : null));
+
     main.getMessageManager().sendMessage(sender, "home_set");
   }
 }

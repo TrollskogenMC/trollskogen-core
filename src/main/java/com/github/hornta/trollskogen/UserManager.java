@@ -3,6 +3,7 @@ package com.github.hornta.trollskogen;
 import com.github.hornta.trollskogen.events.NewUserEvent;
 import com.github.hornta.trollskogen.events.ReadUsersEvent;
 import com.github.hornta.trollskogen.homes.Home;
+import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -55,7 +56,7 @@ public class UserManager implements Listener {
       public void run() {
         if(userReaderFuture.isDone()) {
           cancel();
-          Bukkit.getPluginManager().callEvent(new ReadUsersEvent());
+          Bukkit.getPluginManager().callEvent(new ReadUsersEvent(userCache));
         }
       }
     }.runTaskTimer(main, 1, 1);
@@ -222,6 +223,8 @@ public class UserManager implements Listener {
               homeSection.set("z", home.getLocation().getZ());
               homeSection.set("pitch", home.getLocation().getPitch());
               homeSection.set("yaw", home.getLocation().getYaw());
+              homeSection.set("isPublic", home.isPublic());
+              homeSection.set("allowsCmds", home.isAllowCommands());
             }
           }
         }

@@ -24,7 +24,8 @@ public class User {
   private boolean isBanned;
   private LocalDateTime banExpiration;
   private String banReason;
-  private List<Home> homes = Collections.emptyList();
+  private List<Home> homes;
+  private boolean hasOpenHomes;
 
   User(Main main, Player player) {
     this.main = main;
@@ -35,6 +36,8 @@ public class User {
     isBanned = false;
     banReason = null;
     banExpiration = null;
+    homes = Collections.emptyList();
+    hasOpenHomes = false;
   }
 
   User(Main main, String uuid, ConfigurationSection config) {
@@ -64,18 +67,32 @@ public class User {
           Bukkit.getLogger().log(Level.WARNING, "World `{0}` does not exist", homeSection.getString("world"));
           continue;
         }
-        homes.add(new Home(key,
+        Home home = new Home(
+          key,
           new Location(
             world,
             homeSection.getDouble("x"),
             homeSection.getDouble("y"),
             homeSection.getDouble("z"),
             (float)homeSection.getDouble("yaw"),
-            (float)homeSection.getDouble("pitch"))));
+            (float)homeSection.getDouble("pitch")
+          ),
+          homeSection.getBoolean("isPublic", false),
+          player.getUniqueId(),
+          homeSection.getBoolean("allowsCmds", false)
+        );
+        homes.add(home);
+        if(home.isPublic()) {
+          hasOpenHomes = true;
+        }
       }
     } else {
       homes = Collections.emptyList();
     }
+  }
+
+  public boolean hasOpenHomes() {
+    return hasOpenHomes;
   }
 
   public boolean setSelectedEffect(ParticleEffect selectedEffect, boolean keep) {
@@ -182,19 +199,22 @@ public class User {
     return numOfHomes;
   }
 
-  public void setHome(String name, Location location) {
+  public Home setHome(String name, Location location) {
     Home home = getHome(name);
     if(home == null) {
       if(homes.isEmpty()) {
         homes = new ArrayList<>();
       }
-      homes.add(new Home(name, location));
+      Home newHome = new Home(name, location, false, player.getUniqueId(), false);
+      homes.add(newHome);
       setDirty();
+      return newHome;
     } else {
       if(!home.getLocation().equals(location)) {
         setDirty();
       }
       home.setLocation(location);
+      return home;
     }
   }
 
@@ -202,9 +222,23 @@ public class User {
     Home home = getHome(name);
     if(home != null) {
       homes.remove(home);
+      updateHasOpenHomes();
       setDirty();
     }
     return home;
+  }
+
+  public void openHome(Home home) {
+    hasOpenHomes = true;
+    home.setPublic(true);
+    setDirty();
+  }
+
+  public void closeHome(Home home) {
+    hasOpenHomes = true;
+    home.setPublic(false);
+    updateHasOpenHomes();
+    setDirty();
   }
 
   public void ban(String banReason, LocalDateTime banExpiration) {
@@ -247,6 +281,16 @@ public class User {
       Bukkit.getLogger().info(() -> String.format("%s's ban expired, unbanning.", lastSeenAs));
       unban();
     }
+  }
+
+  private void updateHasOpenHomes() {
+    for(Home home : homes) {
+      if(home.isPublic()) {
+        hasOpenHomes = true;
+        return;
+      }
+    }
+    hasOpenHomes = false;
   }
 
   private void setDirty() {

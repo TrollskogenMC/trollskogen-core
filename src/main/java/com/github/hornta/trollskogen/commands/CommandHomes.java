@@ -28,7 +28,19 @@ public class CommandHomes implements ICommandHandler {
         if(user.getHomes().indexOf(h) >= user.getMaxHomes()) {
           messageType = "homes_inactive_home";
         }
-        return main.getMessageManager().getMessage(messageType);
+        String home = main.getMessageManager().getMessage(messageType);
+
+        if(h.isPublic()) {
+          home += "§f(" + main.getMessageManager().getMessage("home_public");
+
+          if(!h.isAllowCommands()) {
+            home += "§f, " + main.getMessageManager().getMessage("home_public_disallow_cmds");
+          }
+
+          home += "§f)";
+        }
+
+        return home;
       })
       .collect(Collectors.joining("§f, "));
 

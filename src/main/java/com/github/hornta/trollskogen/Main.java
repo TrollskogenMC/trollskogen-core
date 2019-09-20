@@ -4,6 +4,7 @@ import com.github.hornta.carbon.Carbon;
 import com.github.hornta.carbon.CarbonArgument;
 import com.github.hornta.carbon.CarbonArgumentType;
 import com.github.hornta.carbon.CarbonCommand;
+import com.github.hornta.sassyspawn.SassySpawn;
 import com.github.hornta.trollskogen.announcements.*;
 import com.github.hornta.trollskogen.commands.*;
 import com.github.hornta.trollskogen.commands.argumentHandlers.*;
@@ -39,6 +40,8 @@ public final class Main extends JavaPlugin {
   private Carbon carbon;
   private UserManager userManager;
   private ParticleManager particleManager;
+  private SassySpawn sassySpawn;
+  private HomeManager homeManager;
 
   private boolean isMaintenance;
 
@@ -57,11 +60,18 @@ public final class Main extends JavaPlugin {
     messageManager = new MessageManager(this);
     carbon = new Carbon();
     trollskogenConfig = new TrollskogenConfig(this);
+
+    homeManager = new HomeManager();
+    getServer().getPluginManager().registerEvents(homeManager, this);
+
     userManager = new UserManager(this);
     particleManager = new ParticleManager(this);
+    if(getServer().getPluginManager().getPlugin("SassySpawn") != null) {
+      sassySpawn = (SassySpawn) getServer().getPluginManager().getPlugin("SassySpawn");
+    }
 
-    getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
     getServer().getPluginManager().registerEvents(userManager, this);
+    getServer().getPluginManager().registerEvents(new ExplodeListener(), this);
     getServer().getPluginManager().registerEvents(particleManager, this);
 
     Announcements.setupCommands(this);
@@ -205,10 +215,64 @@ public final class Main extends JavaPlugin {
       .create();
 
     carbon
-      .addCommand("phome")
-      .withHandler(new CommandPHome(this))
+      .addCommand("ahome")
+      .withHandler(new CommandAHome(this))
       .withArgument(playerArg)
       .withArgument(playerHomeArgumentHandler)
+      .requiresPermission("ts.ahome")
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("openhome")
+      .withHandler(new CommandOpenHome(this))
+      .withArgument(homeArgument)
+      .requiresPermission("ts.openhome")
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("closehome")
+      .withHandler(new CommandCloseHome(this))
+      .withArgument(homeArgument)
+      .requiresPermission("ts.closehome")
+      .preventConsoleCommandSender();
+
+    carbon
+      .addCommand("togglehomecmds")
+      .withHandler(new CommandHomeToggleCommands(this))
+      .withArgument(homeArgument)
+      .requiresPermission("ts.togglehomecmds")
+      .preventConsoleCommandSender();
+
+    OpenHomePlayersArgumentHandler openHomePlayersArgumentHandler = new OpenHomePlayersArgumentHandler(this);
+    getServer().getPluginManager().registerEvents(openHomePlayersArgumentHandler, this);
+
+    CarbonArgument openHomePlayerArgument = new CarbonArgument.Builder("player")
+      .setHandler(openHomePlayersArgumentHandler)
+      .create();
+
+
+    CommandPHome phome = new CommandPHome(this);
+    getServer().getPluginManager().registerEvents(phome, this);
+    carbon
+      .addCommand("phome")
+      .withHandler(phome)
+      .withArgument(openHomePlayerArgument)
+      .withArgument(
+        new CarbonArgument.Builder("home")
+        .dependsOn(openHomePlayerArgument)
+          .setHandler(new PlayerOpenHomeArgumentHandler(this))
+        .setDefaultValue(CommandSender.class, (CommandSender sender, String[] args) -> {
+          User user = main.getUser(args[0]);
+          for(Home home : user.getHomes()) {
+            if(home.isPublic()) {
+              return home.getName();
+            }
+          }
+
+          return "";
+        })
+        .create()
+      )
       .requiresPermission("ts.phome")
       .preventConsoleCommandSender();
 
@@ -334,5 +398,13 @@ public final class Main extends JavaPlugin {
       }
     }
     return false;
+  }
+
+  public SassySpawn getSassySpawn() {
+    return sassySpawn;
+  }
+
+  public HomeManager getHomeManager() {
+    return homeManager;
   }
 }
