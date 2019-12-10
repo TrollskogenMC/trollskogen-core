@@ -1,10 +1,15 @@
 package com.github.hornta.trollskogen.announcements.commands;
 
+import com.github.hornta.carbon.message.MessageManager;
+import com.github.hornta.trollskogen.ConfigKey;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
+import com.github.hornta.trollskogen.announcements.Announcement;
 import org.bukkit.command.CommandSender;
 import com.github.hornta.carbon.ICommandHandler;
 
 import java.text.DecimalFormat;
+import java.util.stream.Collectors;
 
 public class CommandAnnouncement implements ICommandHandler {
   private Main main;
@@ -14,13 +19,11 @@ public class CommandAnnouncement implements ICommandHandler {
 
   @Override
   public void handle(CommandSender commandSender, String[] args, int typedArgs) {
-    long interval = main.getAnnouncements().getInterval();
+    long interval = Integer.toUnsignedLong(main.getConfiguration().get(ConfigKey.ANNOUNCEMENT_INTERVAL));
 
-    main.getMessageManager().setValue("second", main.getSeconds((int)interval));
-    main.getMessageManager().setValue("interval", new DecimalFormat("###,###.#").format(interval));
-
-    main.getMessageManager().setValue("isEnabled", main.getAnnouncements().isEnabled() ? "Ja" : "Nej");
-    main.getMessageManager().setValue("announcements", String.join(", ", main.getAnnouncements().getAnnouncementIds()));
-    main.getMessageManager().sendMessage(commandSender, "announcement");
+    MessageManager.setValue("second", main.getSeconds((int)interval));
+    MessageManager.setValue("interval", new DecimalFormat("###,###.#").format(interval));
+    MessageManager.setValue("announcements", String.join(", ", main.getAnnouncementManager().getAnnouncements().stream().map(Announcement::getMessage).collect(Collectors.joining(", "))));
+    MessageManager.sendMessage(commandSender, MessageKey.ANNOUNCEMENT);
   }
 }

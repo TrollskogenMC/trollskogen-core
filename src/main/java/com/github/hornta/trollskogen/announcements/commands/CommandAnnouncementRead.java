@@ -13,6 +13,6 @@ public class CommandAnnouncementRead implements ICommandHandler {
 
   @Override
   public void handle(CommandSender commandSender, String[] args, int typedArgs) {
-    commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', main.getAnnouncements().getAnnouncement(args[0])));
+    commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', main.getAnnouncementManager().getAnnouncement(args[0]).getMessage()));
   }
 }

@@ -1,6 +1,8 @@
 package com.github.hornta.trollskogen.commands;
 
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
 import org.bukkit.command.CommandSender;
 import com.github.hornta.carbon.ICommandHandler;
 import org.bukkit.entity.Player;
@@ -22,9 +24,9 @@ public class CommandHelp implements ICommandHandler {
     }
 
     List<String> helpTexts = plugin.getCarbon().getHelpTexts(player);
-    plugin.getMessageManager().sendMessage(sender, "help_title");
+    MessageManager.sendMessage(sender, MessageKey.HELP_TITLE);
     for (String helpText : helpTexts) {
-      sender.sendMessage(plugin.getMessageManager().transformColors(helpText));
+      sender.sendMessage(helpText);
     }
   }
 }

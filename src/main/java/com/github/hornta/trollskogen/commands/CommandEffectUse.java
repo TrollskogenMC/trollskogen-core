@@ -2,8 +2,6 @@ package com.github.hornta.trollskogen.commands;
 
 import com.github.hornta.trollskogen.Main;
 import com.github.hornta.trollskogen.effects.ParticleEffect;
-import com.github.hornta.trollskogen.User;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.command.CommandSender;
 import com.github.hornta.carbon.ICommandHandler;
 
@@ -17,12 +15,12 @@ public class CommandEffectUse implements ICommandHandler {
   @Override
   public void handle(CommandSender commandSender, String[] args, int typedArgs) {
     ParticleEffect particleEffect = ParticleEffect.getParticleEffect(args[0]);
-    User user = main.getUser(commandSender);
+    /*User user = main.getUser(commandSender);
     if(user.setSelectedEffect(particleEffect, false)) {
-      main.getMessageManager().setValue("effect_id", WordUtils.capitalizeFully(particleEffect.name(), new char[]{'_'}));
-      main.getMessageManager().sendMessage(commandSender, "effect_set");
+      MessageManager.setValue("effect_id", WordUtils.capitalizeFully(particleEffect.name(), new char[]{'_'}));
+      MessageManager.sendMessage(commandSender, "effect_set");
     } else {
-      main.getMessageManager().sendMessage(commandSender, "effect_set_in_use");
-    }
+      MessageManager.sendMessage(commandSender, "effect_set_in_use");
+    }*/
   }
 }

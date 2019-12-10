@@ -1,6 +1,8 @@
 package com.github.hornta.trollskogen.commands;
 
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,9 +27,9 @@ public class CommandHat implements ICommandHandler {
       inv.setHelmet(held);
       inv.setItemInMainHand(helm);
       player.updateInventory();
-      main.getMessageManager().sendMessage(commandSender, "hat-switch-success");
+      MessageManager.sendMessage(commandSender, MessageKey.HAT_SWITCH_SUCCESS);
     } else {
-      main.getMessageManager().sendMessage(commandSender, "hat-switch-deny");
+      MessageManager.sendMessage(commandSender, MessageKey.HAT_SWITCH_DENY);
     }
   }
 }

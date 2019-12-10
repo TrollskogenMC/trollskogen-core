@@ -2,8 +2,10 @@ package com.github.hornta.trollskogen.commands.argumentHandlers;
 
 import com.github.hornta.carbon.ValidationResult;
 import com.github.hornta.carbon.completers.IArgumentHandler;
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
-import com.github.hornta.trollskogen.User;
+import com.github.hornta.trollskogen.MessageKey;
+import com.github.hornta.trollskogen.users.UserObject;
 import com.github.hornta.trollskogen.homes.Home;
 import org.bukkit.command.CommandSender;
 
@@ -21,10 +23,11 @@ public class PlayerOpenHomeArgumentHandler implements IArgumentHandler {
 
   @Override
   public Set<String> getItems(CommandSender sender, String argument, String[] prevArgs) {
-    User user = main.getUser(prevArgs[0]);
+    UserObject user = main.getUser(prevArgs[0]);
 
-    return user
-      .getHomes()
+    return main
+      .getHomeManager()
+      .getHomes(user.getId())
       .stream()
       .filter(Home::isPublic)
       .filter(h -> h.getName().toLowerCase(Locale.ENGLISH).startsWith(argument.toLowerCase(Locale.ENGLISH)))
@@ -39,15 +42,15 @@ public class PlayerOpenHomeArgumentHandler implements IArgumentHandler {
 
   @Override
   public void whenInvalid(ValidationResult validationResult) {
-    main.getMessageManager().setValue("player_name", validationResult.getPrevArgs()[0]);
-    main.getMessageManager().setValue("home_name", validationResult.getValue());
-    User user = main.getUser(validationResult.getPrevArgs()[0]);
+    MessageManager.setValue("player_name", validationResult.getPrevArgs()[0]);
+    MessageManager.setValue("home_name", validationResult.getValue());
+    UserObject user = main.getUser(validationResult.getPrevArgs()[0]);
 
-    String message = "open_home_not_found";
-    if(user.getHomes().isEmpty()) {
-      message = "open_home_homeless_not_found";
+    MessageKey message = MessageKey.OPEN_HOME_NOT_FOUND;
+    if(main.getHomeManager().getHomes(user.getId()).isEmpty()) {
+      message = MessageKey.OPEN_HOME_HOMELESS_NOT_FOUND;
     }
 
-    main.getMessageManager().sendMessage(validationResult.getCommandSender(), message);
+    MessageManager.sendMessage(validationResult.getCommandSender(), message);
   }
 }

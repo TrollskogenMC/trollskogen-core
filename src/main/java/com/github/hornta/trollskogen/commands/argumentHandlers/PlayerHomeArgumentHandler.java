@@ -2,8 +2,10 @@ package com.github.hornta.trollskogen.commands.argumentHandlers;
 
 import com.github.hornta.carbon.ValidationResult;
 import com.github.hornta.carbon.completers.IArgumentHandler;
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
-import com.github.hornta.trollskogen.User;
+import com.github.hornta.trollskogen.MessageKey;
+import com.github.hornta.trollskogen.users.UserObject;
 import com.github.hornta.trollskogen.homes.Home;
 import org.bukkit.command.CommandSender;
 
@@ -19,10 +21,11 @@ public class PlayerHomeArgumentHandler implements IArgumentHandler {
 
   @Override
   public Set<String> getItems(CommandSender sender, String argument, String[] prevArgs) {
-    User user = main.getUser(prevArgs[0]);
+    UserObject user = main.getUser(prevArgs[0]);
 
-    return user
-      .getHomes()
+    return main
+      .getHomeManager()
+      .getHomes(user.getId())
       .stream()
       .filter(h -> h.getName().toLowerCase(Locale.ENGLISH).startsWith(argument.toLowerCase(Locale.ENGLISH)))
       .map(Home::getName)
@@ -36,8 +39,8 @@ public class PlayerHomeArgumentHandler implements IArgumentHandler {
 
   @Override
   public void whenInvalid(ValidationResult validationResult) {
-    main.getMessageManager().setValue("player_name", validationResult.getPrevArgs()[0]);
-    main.getMessageManager().setValue("home_name", validationResult.getValue());
-    main.getMessageManager().sendMessage(validationResult.getCommandSender(), "player_home_not_found");
+    MessageManager.setValue("player_name", validationResult.getPrevArgs()[0]);
+    MessageManager.setValue("home_name", validationResult.getValue());
+    MessageManager.sendMessage(validationResult.getCommandSender(), MessageKey.PLAYER_HOME_NOT_FOUND);
   }
 }

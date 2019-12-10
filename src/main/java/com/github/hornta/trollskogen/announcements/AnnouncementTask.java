@@ -6,19 +6,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class AnnouncementTask extends BukkitRunnable {
   private JavaPlugin plugin;
-  private Announcements announcements;
+  private AnnouncementManager announcements;
 
-  AnnouncementTask(JavaPlugin plugin, Announcements announcements) {
+  AnnouncementTask(JavaPlugin plugin, AnnouncementManager announcements) {
     this.plugin = plugin;
     this.announcements = announcements;
   }
 
   @Override
   public void run() {
-    if(!announcements.isEnabled()) {
-      return;
-    }
-
     Announcement announcement = announcements.getNextAnnouncement();
     if(announcement == null) {
       return;

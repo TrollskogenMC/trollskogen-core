@@ -1,0 +1,77 @@
+first-join-message: "§dVälkommen <player> till Trollskogen."
+config-reloaded-success: "§eKonfigurationen har laddats om."
+hat-switch-success: "§eDu har nu bytt hatt."
+hat-switch-deny: "§cDu får bara hålla i en grej när du ska byta hatt."
+player-not-found: "§cDen angivna spelaren hittades inte."
+player_open_home_not_found: "§cSpelare med öppet hem hittades inte."
+no_permission: "§cDu har inte tillåtelse att utföra detta kommando."
+command_incorrect_num_arguments: "§cVissa argument till kommandot saknas.\n\nAnvändning:\n<usage>"
+command_not_found_suggestions: "§cKommandot hittades inte.\n\nAlternativ:\n<suggestions>"
+announcement_not_found: "§cDet finns inget meddelande med id `<announcement_id>`."
+announcement_set: "§eSatt `<announcement_id>` med meddelandet `<announcement_message>`."
+announcement_deleted: "§eMeddelande `<announcement_id>` har raderats."
+announcement_list: "§eMeddelanden: §f<announcements>"
+help_title: "§e§m----§e[ Trollskogen Hjälp §e]§m-----"
+announcement: |
+  §eIntervall: §f<interval> <second>
+  §eMeddelanden: §f<announcements>
+
+second: "sekund"
+seconds: "sekunder"
+effect_not_found: "§cDet finns ingen effekt med id `<effect_id>`. Möjliga effekter: <effects>."
+effect_reset: "§eDu tog bort din effekt."
+effect_reset_fail: "§cDu har ingen pågående effekt."
+effect_set: "§eDu använder nu effekten `<effect_id>`."
+effect_set_in_use: "§cDu använder redan den här effekten."
+player_ban_temporary: "§b<player> har blivit temporärt bannlyst i <time_left> till följd av: <reason>"
+player_ban_permanent: "§b<player> har blivit permanent bannlyst till följd av: <reason>"
+kickban_permanent: |
+  Du har blivit permanent bannlyst
+  Anledning: <reason>
+kickban_temporary: |
+  Du har blivit temporärt bannlyst.
+  Anledning: <reason>
+  Tid kvar: <time_left>
+err_ban_no_reason: "§cDu måste specificera en anledning till bannen."
+player_unban: "§b<player> har fått sin bannlysning upphävd."
+unban_not_banned: "§e<player> är inte bannlyst."
+ban_list_player_temporary: "§b<player> §f| §b<time_left> §f| §b<reason>"
+ban_list_player_permanent: "§b<player> §f| §b<reason>"
+no_permission_permban: "§cDu har inte tillåtelse att permanent bannlysa spelare."
+
+max_homes: "§cDu kan inte skapa fler än <num_homes> hem."
+home_maximum_usage: "§cDetta hem är inaktiverat eftersom du överskrider max antal hem."
+home_set: "§eEtt nytt hem har skapats på din position."
+sethome_bad_chars: "§cNamnet på ditt hem innehåller ogiltliga tecken."
+player_not_set_home: "§cDu har inte satt ett hem."
+home_not_found: "§cDu har inget hem med namnet `<home_name>`"
+player_home_not_found: "§c<player_name> har inget hem med namnet `<home_name>`"
+open_home_not_found: "§c<player_name> har inget öppet hem med namnet `<home_name>`"
+open_home_homeless_not_found: "§c<player_name> har inget öppet hem."
+home_deleted: "§eDitt hem `<home_name>` har tagits bort."
+homes: "Hem (<num_homes>/<max_homes>): <homes>"
+homes_home: "§b<home_name>"
+homes_inactive_home: "§7<home_name>"
+home_public: "§eöppen"
+home_public_disallow_cmds: "§ekommandon förbjudna"
+toggle_home_cmds_allow: "§eDu har nu hävt förbjudet för vissa kommandon i närheten av ditt hem."
+toggle_home_cmds_deny: "§eDu förbjuder nu vissa kommandon i närheten av ditt hem."
+open_home_opened: "§eDitt hem `<home_name>` är redan öppet."
+open_home: "§eDu har öppnat ditt hem `<home_name>` för utomstående. Vem som helst kan komma hem till dig."
+open_home_restriction: "§eDu kan maximalt öppna <max_open_homes> hem."
+close_home: "§eDu har stängt ditt hem `<home_name>`. Ingen annan kan komma hem till dig."
+close_home_closed: "§eDitt hem `<home_name>` är redan stängt."
+phome_safe_teleport: "§eDu har blivit teleporterad till spawn eftersom du tog skada inom 10 sekunder efter du kommit hem till <player_name>."
+phome_blocked_cmd: "§e<player_name> har förbjudit detta kommando i närheten av dens hem."
+
+toggle_maintenance_on: "§eUnderhållsläge aktiverat."
+toggle_maintenance_off: "§eUnderhållsläge inaktiverat."
+try_join_maintenance: "Servern står i underhållsläge."
+kick_maintenance: "Servern sattes i underhållsläge."
+already_verified: "§eDitt konto är redan verifierat."
+verify_error: "§cNågot gick fel vid verifieringen."
+verified_success: "§e<player_name> har verifierat sig mot Discord med /verify"
+verified_on_discord: |
+
+  §eSkicka ett PM till §fTroll Zeke§e på Discord för att bli verifierad:
+  §7verify <token>

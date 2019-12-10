@@ -2,11 +2,13 @@ package com.github.hornta.trollskogen.commands.argumentHandlers;
 
 import com.github.hornta.carbon.ValidationResult;
 import com.github.hornta.carbon.completers.IArgumentHandler;
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
 import com.github.hornta.trollskogen.PrefixMatcher;
-import com.github.hornta.trollskogen.User;
-import com.github.hornta.trollskogen.events.NewUserEvent;
-import com.github.hornta.trollskogen.events.ReadUsersEvent;
+import com.github.hornta.trollskogen.users.UserObject;
+import com.github.hornta.trollskogen.users.events.LoadUsersEvent;
+import com.github.hornta.trollskogen.users.events.NewUserEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
@@ -17,7 +19,7 @@ import java.util.Set;
 
 public class PlayerArgumentHandler implements IArgumentHandler, Listener {
   private Main main;
-  private Set<User> parsedUsers = new HashSet<>();
+  private Set<UserObject> parsedUsers = new HashSet<>();
   private PrefixMatcher allUsernames = new PrefixMatcher();
 
   public PlayerArgumentHandler(Main main) {
@@ -26,23 +28,23 @@ public class PlayerArgumentHandler implements IArgumentHandler, Listener {
   }
 
   @EventHandler
-  private void onReadUsers(ReadUsersEvent event) {
-    for(User user : main.getUserManager().getUsers().values()) {
+  private void onReadUsers(LoadUsersEvent event) {
+    for(UserObject user : main.getUserManager().getUsers()) {
       parseUser(user);
     }
   }
 
   @EventHandler
   private void onNewUser(NewUserEvent event) {
-    parseUser(event.getUser());
+    parseUser(event.getUserObject());
   }
 
-  private void parseUser(User user) {
+  private void parseUser(UserObject user) {
     if(parsedUsers.contains(user)) {
       return;
     }
 
-    allUsernames.insert(user.getLastSeenAs());
+    allUsernames.insert(user.getName());
     parsedUsers.add(user);
   }
 
@@ -58,6 +60,6 @@ public class PlayerArgumentHandler implements IArgumentHandler, Listener {
 
   @Override
   public void whenInvalid(ValidationResult validationResult) {
-    main.getMessageManager().sendMessage(validationResult.getCommandSender(), "player-not-found");
+    MessageManager.sendMessage(validationResult.getCommandSender(), MessageKey.PLAYER_NOT_FOUND);
   }
 }

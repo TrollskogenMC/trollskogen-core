@@ -4,19 +4,19 @@ import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Point;
 import org.bukkit.Location;
 
-import java.util.UUID;
-
 public class Home {
+  private int id;
   private String name;
   private Location location;
   private boolean isPublic;
   private Point geometry;
-  private UUID owner;
+  private int owner;
   private boolean allowCommands;
 
   public static final String DEFAULT_HOME_NAME = "home";
 
-  public Home(String name, Location location, boolean isPublic, UUID owner, boolean allowCommands) {
+  public Home(int id, String name, Location location, boolean isPublic, int owner, boolean allowCommands) {
+    this.id = id;
     this.name = name;
     this.location = location;
     this.isPublic = isPublic;
@@ -25,12 +25,20 @@ public class Home {
     this.allowCommands = allowCommands;
   }
 
+  public int getId() {
+    return id;
+  }
+
   public boolean isPublic() {
     return isPublic;
   }
 
   public void setPublic(boolean aPublic) {
     isPublic = aPublic;
+  }
+
+  public void setAllowCommands(boolean allowCommands) {
+    this.allowCommands = allowCommands;
   }
 
   public String getName() {
@@ -50,15 +58,11 @@ public class Home {
     return geometry;
   }
 
-  public UUID getOwner() {
+  public int getOwner() {
     return owner;
   }
 
   public boolean isAllowCommands() {
     return allowCommands;
-  }
-
-  public void toggleAllowCommands() {
-    allowCommands = !allowCommands;
   }
 }

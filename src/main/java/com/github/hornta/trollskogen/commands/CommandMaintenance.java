@@ -1,7 +1,9 @@
 package com.github.hornta.trollskogen.commands;
 
 import com.github.hornta.carbon.ICommandHandler;
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,13 +21,13 @@ public class CommandMaintenance implements ICommandHandler {
     if(main.isMaintenance()) {
       for(Player player : Bukkit.getOnlinePlayers()) {
         if(!main.isAllowedMaintenance(player)) {
-          player.kickPlayer(main.getMessageManager().getMessage("kick_maintenance"));
+          player.kickPlayer(MessageManager.getMessage(MessageKey.KICK_MAINTENANCE));
         }
       }
 
-      main.getMessageManager().sendMessage(sender, "toggle_maintenance_on");
+      MessageManager.sendMessage(sender, MessageKey.TOGGLE_MAINTENANCE_ON);
     } else {
-      main.getMessageManager().sendMessage(sender, "toggle_maintenance_off");
+      MessageManager.sendMessage(sender, MessageKey.TOGGLE_MAINTENANCE_OFF);
     }
   }
 }

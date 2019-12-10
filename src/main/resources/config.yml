@@ -5,4 +5,4 @@ home_perms:
 maintenance:
   - hornta
   - philip2096
-api_url: http://localhost:8080
+api_url: http://localhost:3000

@@ -1,8 +1,9 @@
 package com.github.hornta.trollskogen.commands;
 
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import com.github.hornta.carbon.ICommandHandler;
 
 public class CommandReload implements ICommandHandler {
@@ -14,10 +15,14 @@ public class CommandReload implements ICommandHandler {
 
   @Override
   public void handle(CommandSender commandSender, String[] strings, int typedArgs) {
-    main.getMessageManager().getConfig().reloadConfig();
-    main.getAnnouncements().reload();
-    main.getUserManager().load();
-    main.getTrollskogenConfig().reload();
-    main.getMessageManager().sendMessage(commandSender, "config-reloaded-success");
+    try {
+      main
+        .getConfiguration().reload();
+    } catch (Exception e) {
+      return;
+    }
+    main.getUserManager().loadAllUsers();
+    main.getAnnouncementManager().loadAllAnnouncements();
+    MessageManager.sendMessage(commandSender, MessageKey.CONFIG_RELOADED_SUCCESS);
   }
 }

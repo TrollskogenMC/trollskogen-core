@@ -11,7 +11,7 @@
 # Docs: https://paper.readthedocs.org/ 
 
 verbose: false
-config-version: 19
+config-version: 20
 timings:
   enabled: true
   verbose: true
@@ -46,6 +46,9 @@ settings:
   watchdog:
     early-warning-every: 5000
     early-warning-delay: 10000
+  async-chunks:
+    enable: true
+    load-threads: -1
 messages:
   no-permission: '&cI''m sorry, but you do not have permission to perform this command.
     Please contact the server administrators if you believe that this is in error.'
@@ -56,6 +59,8 @@ messages:
     connection-throttle: Connection throttled! Please wait before reconnecting.
 world-settings:
   default:
+    fix-zero-tick-instant-grow-farms: true
+    per-player-mob-spawns: false
     keep-spawn-loaded-range: 10
     auto-save-interval: -1
     disable-ice-and-snow: false
@@ -165,3 +170,6 @@ world-settings:
       enabled: false
       items:
         COBBLESTONE: 300
+    generator-settings:
+      flat-bedrock: false
+    baby-zombie-movement-modifier: 0.5

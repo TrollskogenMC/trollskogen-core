@@ -2,7 +2,9 @@ package com.github.hornta.trollskogen.commands.argumentHandlers;
 
 import com.github.hornta.carbon.ValidationResult;
 import com.github.hornta.carbon.completers.IArgumentHandler;
+import com.github.hornta.carbon.message.MessageManager;
 import com.github.hornta.trollskogen.Main;
+import com.github.hornta.trollskogen.MessageKey;
 import com.github.hornta.trollskogen.effects.ParticleEffect;
 import org.bukkit.command.CommandSender;
 
@@ -35,8 +37,8 @@ public class EffectArgumentHandler implements IArgumentHandler {
 
   @Override
   public void whenInvalid(ValidationResult result) {
-    main.getMessageManager().setValue("effect_id", result.getValue());
-    main.getMessageManager().setValue("effects", Arrays.stream(ParticleEffect.values()).map(ParticleEffect::name).collect(Collectors.joining(", ")));
-    main.getMessageManager().sendMessage(result.getCommandSender(), "effect_not_found");
+    MessageManager.setValue("effect_id", result.getValue());
+    MessageManager.setValue("effects", Arrays.stream(ParticleEffect.values()).map(ParticleEffect::name).collect(Collectors.joining(", ")));
+    MessageManager.sendMessage(result.getCommandSender(), MessageKey.EFFECT_NOT_FOUND);
   }
 }
