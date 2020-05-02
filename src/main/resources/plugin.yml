@@ -1,33 +1,13 @@
-name: Trollskogen
+name: trollskogen-core
 version: ${project.version}
-main: com.github.hornta.trollskogen.Main
+main: com.github.hornta.trollskogen_core.TrollskogenCorePlugin
 api-version: 1.13
-softdepend:
-  - LuckPerms
-  - SassySpawn
 commands:
   ts:
   hat:
   announcement:
-  effect:
   ban:
   tmpban:
   unban:
   banlist:
-  home:
-  sethome:
-  delhome:
-  openhome:
-  closehome:
-  homes:
-  togglehomecmds:
   maintenance:
-  ahome:
-  phome:
-  verify:
-  callevent:
-  playsong:
-  stopsong:
-  skipwait:
-  yes:
-  no:

@@ -1,0 +1,39 @@
+first-join-message: "§dVälkommen <player> till Trollskogen."
+config-reloaded-success: "§eKonfigurationen har laddats om."
+hat-switch-success: "§eDu har nu bytt hatt."
+hat-switch-deny: "§cDu får bara hålla i en grej när du ska byta hatt."
+player-not-found: "§cDen angivna spelaren hittades inte."
+no_permission: "§cDu har inte tillåtelse att utföra detta kommando."
+command_incorrect_num_arguments: "§cVissa argument till kommandot saknas.\n\nAnvändning:\n<usage>"
+command_not_found_suggestions: "§cKommandot hittades inte.\n\nAlternativ:\n<suggestions>"
+announcement_not_found: "§cDet finns inget meddelande med id `<announcement_id>`."
+announcement_set: "§eSatt `<announcement_id>` med meddelandet `<announcement_message>`."
+announcement_deleted: "§eMeddelande `<announcement_id>` har raderats."
+announcement_list: "§eMeddelanden: §f<announcements>"
+help_title: "§e§m----§e[ Trollskogen Hjälp §e]§m-----"
+announcement: |
+  §eIntervall: §f<interval> <second>
+  §eMeddelanden: §f<announcements>
+
+second: "sekund"
+seconds: "sekunder"
+player_ban_temporary: "§b<player> har blivit temporärt bannlyst i <time_left> till följd av: <reason>"
+player_ban_permanent: "§b<player> har blivit permanent bannlyst till följd av: <reason>"
+kickban_permanent: |
+  Du har blivit permanent bannlyst
+  Anledning: <reason>
+kickban_temporary: |
+  Du har blivit temporärt bannlyst.
+  Anledning: <reason>
+  Tid kvar: <time_left>
+err_ban_no_reason: "§cDu måste specificera en anledning till bannen."
+player_unban: "§b<player> har fått sin bannlysning upphävd."
+unban_not_banned: "§e<player> är inte bannlyst."
+ban_list_player_temporary: "§b<player> §f| §b<time_left> §f| §b<reason>"
+ban_list_player_permanent: "§b<player> §f| §b<reason>"
+no_permission_permban: "§cDu har inte tillåtelse att permanent bannlysa spelare."
+
+toggle_maintenance_on: "§eUnderhållsläge aktiverat."
+toggle_maintenance_off: "§eUnderhållsläge inaktiverat."
+try_join_maintenance: "Servern står i underhållsläge."
+kick_maintenance: "Servern sattes i underhållsläge."

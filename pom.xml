@@ -5,11 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.hornta</groupId>
-    <artifactId>trollskogen</artifactId>
+    <artifactId>trollskogen-core</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-
-    <name>trollskogen</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,7 +24,13 @@
                         <fileset>
                             <directory>server/plugins</directory>
                             <includes>
-                                <include>trollskogen-*.jar</include>
+                                <include>${artifactId}-*.jar</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>${project.basedir}</directory>
+                            <includes>
+                                <include>${project.artifactId}-*.jar</include>
                             </includes>
                         </fileset>
                     </filesets>
@@ -52,8 +55,8 @@
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <relocations>
                         <relocation>
-                            <pattern>com.github.hornta.carbon</pattern>
-                            <shadedPattern>com.github.hornta.trollskogen.carbon</shadedPattern>
+                            <pattern>com.github.hornta.messenger</pattern>
+                            <shadedPattern>${groupId}.trollskogen_core.messenger</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -82,6 +85,15 @@
                             <outputDirectory>${project.basedir}/server/plugins</outputDirectory>
                             <destFileName>${project.artifactId}-${project.version}.jar</destFileName>
                         </artifactItem>
+                        <artifactItem>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <type>jar</type>
+                            <overWrite>yes</overWrite>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                            <destFileName>${project.artifactId}-${project.version}.jar</destFileName>
+                        </artifactItem>
                     </artifactItems>
                     <overWriteSnapshots>true</overWriteSnapshots>
                     <overWriteReleases>true</overWriteReleases>
@@ -99,20 +111,25 @@
 
     <repositories>
         <repository>
-            <id>spigotmc-repo</id>
+            <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>jcenter</id>
+            <name>jcenter-bintray</name>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
     </repositories>
 
     <dependencies>
-       <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.14.4-R0.1-SNAPSHOT</version>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -127,31 +144,24 @@
         </dependency>
         <dependency>
             <groupId>com.github.hornta</groupId>
-            <artifactId>carbon</artifactId>
-            <version>1.5.0-SNAPSHOT</version>
+            <artifactId>messenger</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.hornta</groupId>
-            <artifactId>sassyspawn</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
-            <scope>provided</scope>
+            <artifactId>versioned-config</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.hornta</groupId>
+            <artifactId>commando</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.davidmoten</groupId>
-            <artifactId>rtree</artifactId>
-            <version>0.8.7</version>
-        </dependency>
-        <dependency>
-            <groupId>net.luckperms</groupId>
-            <artifactId>api</artifactId>
-            <version>5.0</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

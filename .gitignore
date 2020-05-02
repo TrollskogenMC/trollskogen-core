@@ -1,22 +1,5 @@
 target
-server/trollskogen
-server/trollskogen_nether
-server/trollskogen_the_end
-server/banned-ips.json
-server/banned-players.json
-server/logs
-server/usercache.json
-server/whitelist.json
-server/crash-reports
-server/plugins
-server/server.properties
-server/spigot-1.13.2.jar
 .idea
-TrollskogenPlugin.iml
-release.properties
-.vscode
-.classpath
-.project
-.factorypath
-.settings
+server/*
+!server/.gitkeep
 
