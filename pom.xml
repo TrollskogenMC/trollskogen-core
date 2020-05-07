@@ -58,6 +58,14 @@
                             <pattern>com.github.hornta.messenger</pattern>
                             <shadedPattern>${groupId}.trollskogen_core.messenger</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.github.hornta.commando</pattern>
+                            <shadedPattern>${groupId}.trollskogen_core.commando</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.github.hornta.versioned-config</pattern>
+                            <shadedPattern>${groupId}.trollskogen_core.versioned-config</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
             </plugin>
