@@ -2,4 +2,4 @@ target
 .idea
 server/*
 !server/.gitkeep
-
+trollskogen-core-*.jar

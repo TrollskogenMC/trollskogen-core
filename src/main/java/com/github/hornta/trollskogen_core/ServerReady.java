@@ -43,6 +43,6 @@ public class ServerReady implements Listener {
   }
 
   public boolean isReady() {
-    return isReady;
+    return pluginsToWaitFor.isEmpty() || isReady;
   }
 }

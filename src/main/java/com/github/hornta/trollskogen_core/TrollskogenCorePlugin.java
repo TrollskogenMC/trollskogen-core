@@ -7,6 +7,7 @@ import com.github.hornta.commando.ICarbonArgument;
 import com.github.hornta.commando.completers.IArgumentHandler;
 import com.github.hornta.messenger.MessageManager;
 import com.github.hornta.messenger.MessagesBuilder;
+import com.github.hornta.messenger.MessengerException;
 import com.github.hornta.messenger.Translation;
 import com.github.hornta.messenger.Translations;
 import com.github.hornta.trollskogen_core.announcements.*;
@@ -14,11 +15,13 @@ import com.github.hornta.trollskogen_core.bans.BanManager;
 import com.github.hornta.trollskogen_core.commands.*;
 import com.github.hornta.trollskogen_core.commands.argumentHandlers.*;
 import com.github.hornta.trollskogen_core.commands.CommandHat;
-import com.github.hornta.trollskogen_core.config.InitialVersion;
 import com.github.hornta.trollskogen_core.users.UserManager;
 import com.github.hornta.trollskogen_core.users.UserObject;
 import com.github.hornta.versioned_config.Configuration;
 import com.github.hornta.versioned_config.ConfigurationBuilder;
+import com.github.hornta.versioned_config.ConfigurationException;
+import com.github.hornta.versioned_config.Patch;
+import com.github.hornta.versioned_config.Type;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.asynchttpclient.*;
@@ -35,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static org.asynchttpclient.Dsl.asyncHttpClient;
@@ -59,8 +63,21 @@ public final class TrollskogenCorePlugin extends JavaPlugin {
   public void onEnable() {
     instance = this;
 
-    setupConfig();
-    setupMessages();
+    try {
+      setupConfig();
+    } catch (ConfigurationException e) {
+      getLogger().log(Level.SEVERE, "Failed to setup config", e);
+      setEnabled(false);
+      return;
+    }
+
+    try {
+      setupMessages();
+    } catch (MessengerException e) {
+      getLogger().log(Level.SEVERE, "Failed to setup messages", e);
+      setEnabled(false);
+      return;
+    }
     setupCommands();
 
     DefaultAsyncHttpClientConfig.Builder httpConfig = config();
@@ -131,14 +148,20 @@ public final class TrollskogenCorePlugin extends JavaPlugin {
       .requiresPermission("ts.maintenance");
   }
 
-  private void setupConfig() {
+  private void setupConfig() throws ConfigurationException {
     File cfgFile = new File(getDataFolder(), "config.yml");
-    ConfigurationBuilder<ConfigKey> cb = new ConfigurationBuilder<>(this, cfgFile);
-    cb.addVersion(new InitialVersion());
-    configuration = cb.run();
+    ConfigurationBuilder<ConfigKey> cb = new ConfigurationBuilder<>(cfgFile);
+    Patch<ConfigKey> patch = new Patch<>(1);
+    patch.set(ConfigKey.LANGUAGE, "language", "swedish", Type.STRING);
+    patch.set(ConfigKey.MAINTENANCE, "maintenance", Arrays.asList("hornta", "philip2096"), Type.LIST);
+    patch.set(ConfigKey.API_URL, "api_url", "http://localhost:3000", Type.STRING);
+    patch.set(ConfigKey.API_KEY, "api_key", "", Type.STRING);
+    patch.set(ConfigKey.ANNOUNCEMENT_INTERVAL, "announcement_interval", 1800, Type.INTEGER);
+    cb.addPatch(patch);
+    configuration = cb.create();
   }
 
-  private void setupMessages() {
+  private void setupMessages() throws MessengerException {
     MessageManager messageManager = new MessagesBuilder()
       .add(MessageKey.FIRST_JOIN_MESSAGE, "first-join-message")
       .add(MessageKey.CONFIG_RELOADED_SUCCESS, "config-reloaded-success")
