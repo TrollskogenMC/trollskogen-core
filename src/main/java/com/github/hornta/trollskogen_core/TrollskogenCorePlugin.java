@@ -20,6 +20,7 @@ import com.github.hornta.trollskogen_core.users.UserObject;
 import com.github.hornta.versioned_config.Configuration;
 import com.github.hornta.versioned_config.ConfigurationBuilder;
 import com.github.hornta.versioned_config.ConfigurationException;
+import com.github.hornta.versioned_config.Migration;
 import com.github.hornta.versioned_config.Patch;
 import com.github.hornta.versioned_config.Type;
 import com.google.gson.Gson;
@@ -151,13 +152,15 @@ public final class TrollskogenCorePlugin extends JavaPlugin {
   private void setupConfig() throws ConfigurationException {
     File cfgFile = new File(getDataFolder(), "config.yml");
     ConfigurationBuilder<ConfigKey> cb = new ConfigurationBuilder<>(cfgFile);
-    Patch<ConfigKey> patch = new Patch<>(1);
-    patch.set(ConfigKey.LANGUAGE, "language", "swedish", Type.STRING);
-    patch.set(ConfigKey.MAINTENANCE, "maintenance", Arrays.asList("hornta", "philip2096"), Type.LIST);
-    patch.set(ConfigKey.API_URL, "api_url", "http://localhost:3000", Type.STRING);
-    patch.set(ConfigKey.API_KEY, "api_key", "", Type.STRING);
-    patch.set(ConfigKey.ANNOUNCEMENT_INTERVAL, "announcement_interval", 1800, Type.INTEGER);
-    cb.addPatch(patch);
+    cb.addMigration(new Migration<>(1, () -> {
+      Patch<ConfigKey> patch = new Patch<>();
+      patch.set(ConfigKey.LANGUAGE, "language", "swedish", Type.STRING);
+      patch.set(ConfigKey.MAINTENANCE, "maintenance", Arrays.asList("hornta", "philip2096"), Type.LIST);
+      patch.set(ConfigKey.API_URL, "api_url", "http://localhost:3000", Type.STRING);
+      patch.set(ConfigKey.API_KEY, "api_key", "", Type.STRING);
+      patch.set(ConfigKey.ANNOUNCEMENT_INTERVAL, "announcement_interval", 1800, Type.INTEGER);
+      return patch;
+    }));
     configuration = cb.create();
   }
 

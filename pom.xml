@@ -24,7 +24,7 @@
                         <fileset>
                             <directory>server/plugins</directory>
                             <includes>
-                                <include>${artifactId}-*.jar</include>
+                                <include>${project.artifactId}-*.jar</include>
                             </includes>
                         </fileset>
                         <fileset>
@@ -56,15 +56,11 @@
                     <relocations>
                         <relocation>
                             <pattern>com.github.hornta.messenger</pattern>
-                            <shadedPattern>${groupId}.trollskogen_core.messenger</shadedPattern>
+                            <shadedPattern>${project.groupId}.trollskogen_core.messenger</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>com.github.hornta.commando</pattern>
-                            <shadedPattern>${groupId}.trollskogen_core.commando</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>com.github.hornta.versioned-config</pattern>
-                            <shadedPattern>${groupId}.trollskogen_core.versioned-config</shadedPattern>
+                            <pattern>com.github.hornta.versioned_config</pattern>
+                            <shadedPattern>${project.groupId}.trollskogen_core.versioned_config</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
@@ -119,12 +115,8 @@
 
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <id>papermc</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
         </repository>
         <repository>
             <id>jcenter</id>
@@ -135,9 +127,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.15.2-R0.1-SNAPSHOT</version>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.16.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

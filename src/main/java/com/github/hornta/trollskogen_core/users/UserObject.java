@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.*;
 
 public class UserObject {
-  private Integer id;
+  private final Integer id;
   private String name;
   private UUID uuid;
   private boolean isVerified;

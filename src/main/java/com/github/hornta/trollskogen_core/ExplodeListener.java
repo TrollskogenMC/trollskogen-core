@@ -9,7 +9,7 @@ public class ExplodeListener implements Listener {
   @EventHandler
   public void onEntityExplode(EntityExplodeEvent event) {
     if(event.getEntityType() == EntityType.CREEPER) {
-      event.setCancelled(true);
+      event.blockList().clear();
     }
   }
 }
