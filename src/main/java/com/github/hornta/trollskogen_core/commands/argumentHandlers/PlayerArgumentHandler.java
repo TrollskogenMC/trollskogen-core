@@ -3,9 +3,9 @@ package com.github.hornta.trollskogen_core.commands.argumentHandlers;
 import com.github.hornta.commando.ValidationResult;
 import com.github.hornta.commando.completers.IArgumentHandler;
 import com.github.hornta.messenger.MessageManager;
-import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
 import com.github.hornta.trollskogen_core.MessageKey;
 import com.github.hornta.trollskogen_core.PrefixMatcher;
+import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
 import com.github.hornta.trollskogen_core.users.UserObject;
 import com.github.hornta.trollskogen_core.users.events.LoadUsersEvent;
 import com.github.hornta.trollskogen_core.users.events.NewUserEvent;
@@ -18,18 +18,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PlayerArgumentHandler implements IArgumentHandler, Listener {
-  private final TrollskogenCorePlugin main;
   private final Set<UserObject> parsedUsers = new HashSet<>();
   private final PrefixMatcher allUsernames = new PrefixMatcher();
 
   public PlayerArgumentHandler(TrollskogenCorePlugin main) {
-    this.main = main;
     Bukkit.getServer().getPluginManager().registerEvents(this, main);
   }
 
   @EventHandler
   private void onReadUsers(LoadUsersEvent event) {
-    for(UserObject user : main.getUserManager().getUsers()) {
+    for (var user : TrollskogenCorePlugin.getUserManager().getUsers()) {
       parseUser(user);
     }
   }
@@ -40,7 +38,7 @@ public class PlayerArgumentHandler implements IArgumentHandler, Listener {
   }
 
   private void parseUser(UserObject user) {
-    if(parsedUsers.contains(user)) {
+    if (parsedUsers.contains(user)) {
       return;
     }
 

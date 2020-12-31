@@ -1,6 +1,8 @@
 name: trollskogen-core
 version: ${project.version}
 main: com.github.hornta.trollskogen_core.TrollskogenCorePlugin
+depend:
+  - LuckPerms
 api-version: 1.13
 commands:
   ts:

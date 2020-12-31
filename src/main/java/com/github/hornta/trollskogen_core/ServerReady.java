@@ -29,8 +29,8 @@ public class ServerReady implements Listener {
 
     pluginsToWaitFor.put(event.getPlugin(), true);
 
-    boolean allPluginsReady = true;
-    for(Boolean ready : pluginsToWaitFor.values()) {
+    var allPluginsReady = true;
+    for(var ready : pluginsToWaitFor.values()) {
       if(!ready) {
         allPluginsReady = false;
         break;

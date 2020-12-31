@@ -5,8 +5,8 @@ import com.github.hornta.messenger.MessageManager;
 import com.github.hornta.messenger.MessengerException;
 import com.github.hornta.messenger.Translation;
 import com.github.hornta.trollskogen_core.ConfigKey;
-import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
 import com.github.hornta.trollskogen_core.MessageKey;
+import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
 import com.github.hornta.versioned_config.ConfigurationException;
 import org.bukkit.command.CommandSender;
 
@@ -35,7 +35,7 @@ public class CommandReload implements ICommandHandler {
       return;
     }
     MessageManager.getInstance().setTranslation(translation);
-    main.getUserManager().loadAllUsers();
+    TrollskogenCorePlugin.getUserManager().loadAllUsers();
     main.getAnnouncementManager().loadAllAnnouncements();
     MessageManager.sendMessage(commandSender, MessageKey.CONFIG_RELOADED_SUCCESS);
   }
