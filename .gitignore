@@ -3,3 +3,4 @@ target
 server/*
 !server/.gitkeep
 trollskogen-core-*.jar
+trollskogen-core.iml
