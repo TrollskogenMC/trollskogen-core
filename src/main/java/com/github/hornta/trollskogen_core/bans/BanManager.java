@@ -58,14 +58,16 @@ public class BanManager implements Listener {
   public Ban getLongestBan(UserObject user) {
     Ban longestBan = null;
     for(Ban ban : bans) {
-      if(ban.getExpiryDate() == null) {
-        return ban;
-      }
+      if (ban.getUserId() == user.getId()) {
+        if (ban.getExpiryDate() == null) {
+          return ban;
+        }
 
-      if(longestBan == null) {
-        longestBan = ban;
-      } else if(ban.getExpiryDate().isAfter(longestBan.getExpiryDate())) {
-        longestBan = ban;
+        if (longestBan == null) {
+          longestBan = ban;
+        } else if (ban.getExpiryDate().isAfter(longestBan.getExpiryDate())) {
+          longestBan = ban;
+        }
       }
     }
     return longestBan;
