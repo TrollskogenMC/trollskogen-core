@@ -2,7 +2,7 @@ package com.github.hornta.trollskogen_core.commands.argumentHandlers;
 
 import com.github.hornta.commando.ValidationResult;
 import com.github.hornta.commando.completers.IArgumentHandler;
-import com.github.hornta.messenger.MessageManager;
+import se.hornta.messenger.MessageManager;
 import com.github.hornta.trollskogen_core.MessageKey;
 import com.github.hornta.trollskogen_core.PrefixMatcher;
 import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;

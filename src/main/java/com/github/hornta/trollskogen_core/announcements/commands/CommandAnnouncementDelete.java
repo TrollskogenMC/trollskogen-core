@@ -1,7 +1,7 @@
 package com.github.hornta.trollskogen_core.announcements.commands;
 
 import com.github.hornta.commando.ICommandHandler;
-import com.github.hornta.messenger.MessageManager;
+import se.hornta.messenger.MessageManager;
 import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
 import com.github.hornta.trollskogen_core.MessageKey;
 import com.github.hornta.trollskogen_core.announcements.Announcement;
