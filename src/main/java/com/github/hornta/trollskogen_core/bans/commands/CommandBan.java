@@ -1,7 +1,7 @@
 package com.github.hornta.trollskogen_core.bans.commands;
 
 import com.github.hornta.commando.ICommandHandler;
-import com.github.hornta.messenger.MessageManager;
+import se.hornta.messenger.MessageManager;
 import com.github.hornta.trollskogen_core.BaseCommand;
 import com.github.hornta.trollskogen_core.DateUtils;
 import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;

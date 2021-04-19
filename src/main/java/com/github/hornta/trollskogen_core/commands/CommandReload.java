@@ -1,9 +1,9 @@
 package com.github.hornta.trollskogen_core.commands;
 
 import com.github.hornta.commando.ICommandHandler;
-import com.github.hornta.messenger.MessageManager;
-import com.github.hornta.messenger.MessengerException;
-import com.github.hornta.messenger.Translation;
+import se.hornta.messenger.MessageManager;
+import se.hornta.messenger.MessengerException;
+import se.hornta.messenger.Translation;
 import com.github.hornta.trollskogen_core.ConfigKey;
 import com.github.hornta.trollskogen_core.MessageKey;
 import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;

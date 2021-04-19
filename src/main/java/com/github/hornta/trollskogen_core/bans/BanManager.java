@@ -4,7 +4,7 @@ import com.github.hornta.commando.CarbonArgument;
 import com.github.hornta.commando.CarbonArgumentType;
 import com.github.hornta.commando.ICarbonArgument;
 import com.github.hornta.commando.completers.IArgumentHandler;
-import com.github.hornta.messenger.MessageManager;
+import se.hornta.messenger.MessageManager;
 import com.github.hornta.trollskogen_core.DateUtils;
 import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
 import com.github.hornta.trollskogen_core.MessageKey;
@@ -58,14 +58,16 @@ public class BanManager implements Listener {
   public Ban getLongestBan(UserObject user) {
     Ban longestBan = null;
     for(Ban ban : bans) {
-      if(ban.getExpiryDate() == null) {
-        return ban;
-      }
+      if (ban.getUserId() == user.getId()) {
+        if (ban.getExpiryDate() == null) {
+          return ban;
+        }
 
-      if(longestBan == null) {
-        longestBan = ban;
-      } else if(ban.getExpiryDate().isAfter(longestBan.getExpiryDate())) {
-        longestBan = ban;
+        if (longestBan == null) {
+          longestBan = ban;
+        } else if (ban.getExpiryDate().isAfter(longestBan.getExpiryDate())) {
+          longestBan = ban;
+        }
       }
     }
     return longestBan;

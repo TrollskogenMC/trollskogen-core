@@ -1,6 +1,6 @@
 package com.github.hornta.trollskogen_core.users;
 
-import com.github.hornta.messenger.MessageManager;
+import se.hornta.messenger.MessageManager;
 import com.github.hornta.trollskogen_core.DateUtils;
 import com.github.hornta.trollskogen_core.MessageKey;
 import com.github.hornta.trollskogen_core.TrollskogenCorePlugin;
